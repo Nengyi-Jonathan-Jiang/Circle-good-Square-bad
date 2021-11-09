@@ -1,0 +1,26 @@
+@media only screen and (orientation: landscape){
+    div#container{
+        --d: min(100vw,200vh);
+        --w: calc(var(--d) * 1.0);
+        --h: calc(var(--d) * 0.5);
+    }
+}
+@media only screen and (orientation: portrait){
+    div#container{
+        --d: min(200vw,100vh);
+        --w: calc(var(--d) * 0.5);
+        --h: calc(var(--d) * 1.0);
+    }
+}
+
+div#container{
+    position:absolute;
+    left: calc((100vw - var(--w)) * 0.5);
+    top:  calc((100vh - var(--h)) * 0.5);
+    width:var(--w); height:var(--h);
+}
+div#container>canvas{
+    position: absolute;
+    top: 0; left: 0;
+    width: var(--w); height: var(--h);
+}
