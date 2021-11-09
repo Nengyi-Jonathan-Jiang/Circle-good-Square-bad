@@ -21,6 +21,7 @@ function coord(x, y){
         case "landscape-secondary": return d ? scale(2 - x, 1 - y) : scale(1 - y, 2 - x);
     }
 }
+
 function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
 
 {
