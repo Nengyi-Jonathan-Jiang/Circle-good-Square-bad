@@ -6,7 +6,7 @@ window.onresize = (f=>(f(),f))(_=>{
 });
 
 var p = {
-    x:1,y:0.5,speed:1,angle: Math.random() * 10,
+    x:.25,y:0,speed:0,angle: Math.random() * 10,
     r:.025
 };
 
@@ -15,10 +15,10 @@ screen.orientation.angle;
 function coord(x, y){
     let d = c.width > c.height;
     switch(screen.orientation.type){
-        case "portrait-primary":    return d ? scale(1 - y, x    ) : scale(1 - y, x    );
-        case "portrait-secondary":  return d ? scale(y,     2 - x) : scale(y,     2 - x);
-        case "landscape-primary":   return d ? scale(x,     y    ) : scale(x,     y    );
-        case "landscape-secondary": return d ? scale(2 - x, 1 - y) : scale(2 - x, 1 - y);
+        case "portrait-primary":    return d ? scale(x,     1 - y) : scale(y,     2 - x);
+        case "portrait-secondary":  return d ? scale(2 - x,     y) : scale(1 - y,     x);
+        case "landscape-primary":   return d ? scale(x,         y) : scale(y,         x);
+        case "landscape-secondary": return d ? scale(2 - x, 1 - y) : scale(1 - y, 2 - x);
     }
 }
 function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
