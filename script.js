@@ -6,19 +6,22 @@ window.onresize = (f=>(f(),f))(_=>{
 });
 
 var p = {
-    x:1,y:0.5,speed:.5,angle: .7,
+    x:1,y:0.5,speed:1,angle: Math.random() * 10,
     r:.025
 };
 
-function isPortrait(){
-    return window.innerHeight > window.innerWidth;
-}
+screen.orientation.angle;
 
 function coord(x, y){
-    return isPortrait() ? [y * c.width, (2 - x) * c.width] : [x * c.height, y * c.height];
+    let d = c.width > c.height;
+    switch(screen.orientation.type){
+        case "portrait-primary":    return d ? scale(1 - y, x    ) : scale(1 - y, x    );
+        case "portrait-secondary":  return d ? scale(y,     2 - x) : scale(y,     2 - x);
+        case "landscape-primary":   return d ? scale(x,     y    ) : scale(x,     y    );
+        case "landscape-secondary": return d ? scale(2 - x, 1 - y) : scale(2 - x, 1 - y);
+    }
 }
-function scale(a){return isPortrait() ? a * c.width : a * c.height}
-
+function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
 
 {
     let oldX, oldY;
@@ -27,16 +30,33 @@ function scale(a){return isPortrait() ? a * c.width : a * c.height}
     }
     function mouseMoveHandler(newX, newY){
         if(oldX == undefined) return;
+        let angle = Math.atan2(newY - oldY, newX - oldX) / Math.PI / 2;
 
-        console.log(newX - oldX, newY - oldY);
+        function correctAngle(angle){
+            switch(screen.orientation.type){
+                case "portrait-primary":    return .00 - angle;
+                case "portrait-secondary":  return .50 - angle;
+                case "landscape-primary":   return .75 - angle;
+                case "landscape-secondary": return .25 - angle;
+            }
+        }
+        p.angle = correctAngle(angle);
+
         oldX = oldY = undefined;
     }
 
-    window.addEventListener("mousemove",e=>{
-        if(e.buttons & 1){
-            console.log("drag");
-        }
+    c.canvas.addEventListener("mousedown",e=>{
+        if(e.buttons & 1) mouseDownHandler(e.clientX,e.clientY);
     })
+    c.canvas.addEventListener("mousemove",e=>{
+        if(e.buttons & 1) mouseMoveHandler(e.clientX,e.clientY);
+    })
+    c.canvas.addEventListener("touchstart",e=>{
+        mouseDownHandler(e.touches[0].clientX,e.touches[0].clientY);
+    })
+    c.canvas.addEventListener("touchmove",e=>{
+        mouseMoveHandler(e.touches[0].clientX,e.touches[0].clientY);
+    });
 }
 
 Canvas.createAnimation((_,elapsedTime)=>{
@@ -52,5 +72,5 @@ Canvas.createAnimation((_,elapsedTime)=>{
 
     
     c.setDrawColor("#FD0");
-    c.fillCircle(...coord(p.x, p.y), scale(p.r));
+    c.fillCircle(...coord(p.x, p.y), ...scale(p.r));
 });
