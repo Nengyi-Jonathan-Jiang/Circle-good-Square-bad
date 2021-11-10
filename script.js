@@ -6,8 +6,9 @@ window.onresize = (f=>(f(),f))(_=>{
 });
 
 var p = {
-    x:1,y:0.5,speed:.1,angle: Math.random() * 10,
-    r:.025
+    x:1,y:0.5,speed:10,angle: Math.random() * 10,
+    r:.025,
+    w:.00625
 };
 
 var lastPositions = [{x:p.x,y:p.y,angle:p.angle}];
@@ -76,21 +77,15 @@ Canvas.createAnimation((_,et)=>{
         if(p.y < p.r)     p.y = p.r,     p.angle = .5 - p.angle;
 
         if(draw){
-            c.clear("#014");
-            c.setStrokeWidth(scale(p.r * .25));
+            c.clear("#0144");
+            c.setStrokeWidth(scale(p.w));
             c.setDrawColor("#FD0");
             c.circle(...coord(p.x, p.y), ...scale(p.r));
 
-            c.setDrawColor("#FD04");
-            c.beginPath();
-            for(let q of lastPositions){
-                c.lineTo(...coord(q.x + p.r * Math.cos(q.angle * 2 * Math.PI), q.y - p.r * Math.sin(q.angle * 2 * Math.PI)));
+            c.setDrawColor("#FD01");
+            for(let {x,y} of lastPositions){
+                c.circle(...coord(x, y), ...scale(p.r));
             }
-            for(let q of [...lastPositions].reverse()){
-                c.lineTo(...coord(q.x - p.r * Math.cos(q.angle * 2 * Math.PI), q.y + p.r * Math.sin(q.angle * 2 * Math.PI)));
-            }
-            c.closePath();
-            c.ctx.fill("nonzero");
         }
         
         lastPositions.push({
@@ -98,17 +93,19 @@ Canvas.createAnimation((_,et)=>{
             y:p.y,
             angle:p.angle
         });
-        if(lastPositions.length > 100) lastPositions.shift();
+        if(lastPositions.length > 64) lastPositions.shift();
     }
     
-    let maxStep = .01;
+    let maxStep = p.w;
 
     while(-et > maxStep/p.speed){
         if(f(-maxStep/p.speed)) return true;
-        et+= maxStep/p.speed;
+        et += maxStep/p.speed;
     }
     if(f(et,true)) return true;
 }).then(_=>{
     alert("You Lose!");
-    c.clear("#004")
+    Canvas.createAnimation(_=>{
+        c.clear("#004")
+    })
 });
