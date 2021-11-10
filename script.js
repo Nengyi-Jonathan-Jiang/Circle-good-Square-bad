@@ -6,7 +6,7 @@ window.onresize = (f=>(f(),f))(_=>{
 });
 
 var p = {
-    x:1,y:0.5,speed:10,angle: Math.random() * 10,
+    x:1,y:0.5,speed:.1,angle: Math.random() * 10,
     r:.025,
     w:.00625,
     minSpeed: 0.005
@@ -100,7 +100,7 @@ Canvas.createAnimation((_,elapsedTime)=>{
     draw();
 }).then(_=>{
     alert("You Lose!");
-    c.setDrawColor("#F00");
+    c.setDrawColor("#000");
     Canvas.createAnimation(_=>{
         c.clear("#014");
         c.circle(...coord(p.x, p.y), ...scale(p.r));
