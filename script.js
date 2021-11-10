@@ -65,7 +65,7 @@ Canvas.createAnimation((_,et)=>{
 
     function f(elapsedTime, draw){
         p.speed *= Math.pow(1.1, elapsedTime);
-        if(p.speed < 0.01) return false;
+        if(p.speed < 0.01) return true;
 
         p.x += p.speed * Math.sin(p.angle * 2 * Math.PI) * elapsedTime;
         p.y += p.speed * Math.cos(p.angle * 2 * Math.PI) * elapsedTime;
@@ -103,6 +103,12 @@ Canvas.createAnimation((_,et)=>{
     
     let maxStep = .01;
 
-    while(-et > maxStep/p.speed) f(-maxStep/p.speed), et+= maxStep/p.speed;
-    f(et,true);
-}).then();
+    while(-et > maxStep/p.speed){
+        if(f(-maxStep/p.speed)) return true;
+        et+= maxStep/p.speed;
+    }
+    if(f(et,true)) return true;
+}).then(_=>{
+    alert("You Lose!");
+    c.clear("#004")
+});

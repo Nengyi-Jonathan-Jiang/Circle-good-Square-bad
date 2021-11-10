@@ -269,5 +269,5 @@ declare class Canvas {
      * Calls f(current time,elapsed time in milliseconds) 60 times per second (or tries to...)
      * @param {Function} f-the function to be called
      */
-    static createAnimation(f: (currTime: number, elapsedTime: number) => undefined | boolean): void;
+    static createAnimation(f: (currTime: number, elapsedTime: number) => undefined | boolean) : Promise<any>;
 }

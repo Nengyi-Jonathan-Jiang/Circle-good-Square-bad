@@ -490,7 +490,10 @@ class Canvas {
         return new Promise(resolve=>{
             let then = 0;
             const f2 = (t) => {
-                if (f(0.001 * t, 0.001 * (then - t))) return resolve();
+                if (f(0.001 * t, 0.001 * (then - t))){
+                    
+                    return resolve();
+                }
                 then = t;
                 requestAnimationFrame(f2);
             };
