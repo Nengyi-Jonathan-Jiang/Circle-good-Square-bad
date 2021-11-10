@@ -55,7 +55,11 @@ function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
     })
     c.canvas.addEventListener("touchmove",e=>{
         mouseMoveHandler(e.touches[0].clientX,e.touches[0].clientY);
+        e.preventDefault();
     });
+    c.canvas.addEventListener("contextmenu",e=>{
+        e.preventDefault();
+    })
 }
 
 Canvas.createAnimation((_,elapsedTime)=>{
