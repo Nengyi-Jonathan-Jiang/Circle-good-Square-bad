@@ -487,13 +487,15 @@ class Canvas {
      * @param {Function} f-the function to be called
      */
     static createAnimation(f) {
-        let then = 0;
-        const f2 = (t) => {
-            if (f(0.001 * t, 0.001 * (then - t)))
-                return;
-            then = t;
+        return new Promise(resolve=>{
+            let then = 0;
+            const f2 = (t) => {
+                if (f(0.001 * t, 0.001 * (then - t))) return resolve();
+                then = t;
+                requestAnimationFrame(f2);
+            };
             requestAnimationFrame(f2);
-        };
-        requestAnimationFrame(f2);
+        })
+        
     }
 }
