@@ -6,9 +6,10 @@ window.onresize = (f=>(f(),f))(_=>{
 });
 
 var p = {
-    x:1,y:0.5,speed:5,angle: Math.random() * 10,
+    x:1,y:0.5,speed:10,angle: Math.random() * 10,
     r:.025,
-    w:.00625
+    w:.00625,
+    minSpeed: 0.005
 };
 
 var lastPositions = [];
@@ -64,10 +65,11 @@ function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
 
 var lastFrameTime = -1;
 
+window.onkeypress=_=>{console.log(lastPositions.length)}
 
-function update(elapsedTime){
+function f(elapsedTime, draw){
     p.speed *= Math.pow(1.1, elapsedTime);
-    if(p.speed < p.w) return true;
+    if(p.speed < p.minSpeed) return true;
 
     p.x += p.speed * Math.sin(p.angle * 2 * Math.PI) * elapsedTime;
     p.y += p.speed * Math.cos(p.angle * 2 * Math.PI) * elapsedTime;
@@ -78,7 +80,7 @@ function update(elapsedTime){
     if(p.y < p.r)     p.y = p.r,     p.angle = .5 - p.angle;
     
     lastPositions.push([p.x,p.y]);
-    while(lastPositions.length > Math.sqrt(20 * p.speed / p.w)) lastPositions.shift();
+    while(lastPositions.length > Math.min(100, p.speed / p.w)) lastPositions.shift();
 }
 function draw(){
     c.clear("#014");
@@ -90,15 +92,12 @@ function draw(){
     for(let [x,y] of lastPositions) c.circle(...coord(x, y), ...scale(p.r));
 }
 
-Canvas.createAnimation((currTime)=>{
-    if(!lastFrameTime) lastFrameTime = currTime;
-    
-    let maxStep = p.w / 2;
-    for(;currTime - lastFrameTime > maxStep / p.speed; lastFrameTime += maxStep/p.speed){
-        if(update(-maxStep/p.speed)) return true;
+Canvas.createAnimation((_,elapsedTime)=>{
+    if(elapsedTime + p.w / p.speed < 0) for(;elapsedTime + p.w / p.speed < 0; elapsedTime += p.w / p.speed){
+        if(f(-p.w / p.speed)) return true;
     }
+    else if(f(elapsedTime)) return true;
     draw();
-
 }).then(_=>{
     alert("You Lose!");
     c.setDrawColor("#F00");
