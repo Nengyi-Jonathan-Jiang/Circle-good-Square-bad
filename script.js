@@ -6,12 +6,12 @@ window.onresize = (f=>(f(),f))(_=>{
 });
 
 var p = {
-    x:1,y:0.5,speed:10,angle: Math.random() * 10,
+    x:1,y:0.5,speed:5,angle: Math.random() * 10,
     r:.025,
     w:.00625
 };
 
-var lastPositions = [{x:p.x,y:p.y,angle:p.angle}];
+var lastPositions = [];
 
 screen.orientation.angle;
 
@@ -62,50 +62,48 @@ function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
     c.canvas.addEventListener("scroll",e=>{e.preventDefault()});
 }
 
-Canvas.createAnimation((_,et)=>{
+var lastFrameTime = -1;
 
-    function f(elapsedTime, draw){
-        p.speed *= Math.pow(1.1, elapsedTime);
-        if(p.speed < 0.01) return true;
 
-        p.x += p.speed * Math.sin(p.angle * 2 * Math.PI) * elapsedTime;
-        p.y += p.speed * Math.cos(p.angle * 2 * Math.PI) * elapsedTime;
+function update(elapsedTime){
+    p.speed *= Math.pow(1.1, elapsedTime);
+    if(p.speed < p.w) return true;
 
-        if(p.x + p.r > 2) p.x = 2 - p.r, p.angle = - p.angle;
-        if(p.x < p.r)     p.x = p.r,     p.angle = - p.angle;
-        if(p.y + p.r > 1) p.y = 1 - p.r, p.angle = .5 - p.angle;
-        if(p.y < p.r)     p.y = p.r,     p.angle = .5 - p.angle;
+    p.x += p.speed * Math.sin(p.angle * 2 * Math.PI) * elapsedTime;
+    p.y += p.speed * Math.cos(p.angle * 2 * Math.PI) * elapsedTime;
 
-        if(draw){
-            c.clear("#0144");
-            c.setStrokeWidth(scale(p.w));
-            c.setDrawColor("#FD0");
-            c.circle(...coord(p.x, p.y), ...scale(p.r));
-
-            c.setDrawColor("#FD01");
-            for(let {x,y} of lastPositions){
-                c.circle(...coord(x, y), ...scale(p.r));
-            }
-        }
-        
-        lastPositions.push({
-            x:p.x,
-            y:p.y,
-            angle:p.angle
-        });
-        if(lastPositions.length > 64) lastPositions.shift();
-    }
+    if(p.x + p.r > 2) p.x = 2 - p.r, p.angle = - p.angle;
+    if(p.x < p.r)     p.x = p.r,     p.angle = - p.angle;
+    if(p.y + p.r > 1) p.y = 1 - p.r, p.angle = .5 - p.angle;
+    if(p.y < p.r)     p.y = p.r,     p.angle = .5 - p.angle;
     
-    let maxStep = p.w;
+    lastPositions.push([p.x,p.y]);
+    while(lastPositions.length > Math.sqrt(20 * p.speed / p.w)) lastPositions.shift();
+}
+function draw(){
+    c.clear("#014");
+    c.setStrokeWidth(scale(p.w));
+    c.setDrawColor("#FD0");
+    c.circle(...coord(p.x, p.y), ...scale(p.r));
 
-    while(-et > maxStep/p.speed){
-        if(f(-maxStep/p.speed)) return true;
-        et += maxStep/p.speed;
+    c.setDrawColor("#FD01");
+    for(let [x,y] of lastPositions) c.circle(...coord(x, y), ...scale(p.r));
+}
+
+Canvas.createAnimation((currTime)=>{
+    if(!lastFrameTime) lastFrameTime = currTime;
+    
+    let maxStep = p.w / 2;
+    for(;currTime - lastFrameTime > maxStep / p.speed; lastFrameTime += maxStep/p.speed){
+        if(update(-maxStep/p.speed)) return true;
     }
-    if(f(et,true)) return true;
+    draw();
+
 }).then(_=>{
     alert("You Lose!");
+    c.setDrawColor("#F00");
     Canvas.createAnimation(_=>{
-        c.clear("#004")
+        c.clear("#014");
+        c.circle(...coord(p.x, p.y), ...scale(p.r));
     })
 });
