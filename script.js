@@ -75,8 +75,8 @@ class PO{
         this.speed = 0.5;
         this.angle = random() * 2 * PI;
 
-        /**@type {[number,number]}*/
-        this.lastPositions = [];
+        /**@type {[number,number][]}*/
+        this.lastPositions = [[this.x, this.y]];
         /**@type {[number,number,number][]}*/
         this.turns = [];
     }
@@ -90,17 +90,24 @@ class PO{
         if(this.speed < PLAYER_MIN_SPEED) return true;
         if(this.speed > PLAYER_MAX_SPEED) this.speed = PLAYER_MAX_SPEED;
 
-        this.x += this.speed * sin(this.angle * 2 * PI) * elapsedTime;
-        this.y += this.speed * cos(this.angle * 2 * PI) * elapsedTime;
+        let ds = this.speed * -elapsedTime;
 
-        if(this.x + R > 2) this.turn(0.0 - this.angle), this.x = 2 - R;
-        if(this.x < R)     this.turn(0.0 - this.angle), this.x = R;
-        if(this.y + R > 1) this.turn(0.5 - this.angle), this.y = 1 - R;
-        if(this.y < R)     this.turn(0.5 - this.angle), this.y = R;
-        
-        this.lastPositions.push([this.x,this.y]);
-        while(this.lastPositions.length > 100) this.lastPositions.shift();
-        this.turns = this.turns.filter(i=> ++i[2] <= 100);
+        let maxTailLength = min(128,this.speed / W);
+
+        for(;ds > 0; ds -= W){
+            let _ds = min(ds,W);
+            this.x -= _ds * sin(this.angle * 2 * PI);
+            this.y -= _ds * cos(this.angle * 2 * PI);
+
+            if(this.x + R > 2) this.turn(0.0 - this.angle), this.x = 2 - R;
+            if(this.x < R)     this.turn(0.0 - this.angle), this.x = R;
+            if(this.y + R > 1) this.turn(0.5 - this.angle), this.y = 1 - R;
+            if(this.y < R)     this.turn(0.5 - this.angle), this.y = R;
+            
+            this.lastPositions.push([this.x,this.y]);
+            while(this.lastPositions.length > maxTailLength) this.lastPositions.shift();
+            this.turns = this.turns.filter(i => (++i[2]) <= maxTailLength);
+        }
     }
     draw(){
         for(let i = 0; i < 5; i++){
@@ -109,7 +116,18 @@ class PO{
         }
     
         c.setDrawColor("#FD01");
-        for(let [x,y] of this.lastPositions) c.circle(...coord(x, y), ...scale(R));
+        let positions = [this.lastPositions[0],...this.turns,[this.x,this.y]];
+        for(let i = 0; i + 1 < positions.length;){
+            let [prev,next] = [positions[i],positions[++i]];
+            let length = sqrt((prev[0] - next[0]) * (prev[0] - next[0]) + (prev[1] - next[1]) * (prev[1] - next[1]));
+            let _length = 1 / length;
+            for(let j = 0; j < length; j += W){
+                c.circle(...coord(
+                    prev[0] + (next[0] - prev[0]) * j * _length,
+                    prev[1] + (next[1] - prev[1]) * j * _length,
+                ), scale(R)[0]);
+            }
+        }
     }
 }
 
@@ -133,10 +151,7 @@ function scale(...a){return a.map(i=>i* min(c.width,c.height))}
         if(oldX == undefined) return;
         let angle = - atan2(newY - oldY, newX - oldX) / PI / 2;
 
-        function correctAngle(angle){
-            return c.width > c.height ? angle - .25 : angle;
-        }
-        p.angle = correctAngle(angle);
+        p.turn(angle - (c.width > c.height) * .25);
         oldX = oldY = undefined;
     }
     c.canvas.addEventListener("mousedown",e=>{
@@ -171,7 +186,7 @@ function update(elapsedTime){
     circles = circles.filter(o=>o.filter());
     squares = squares.filter(o=>o.filter());
 
-    p.update(elapsedTime);
+    if(p.update(elapsedTime)) return true;
 }
 
 function draw(){
