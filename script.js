@@ -6,7 +6,7 @@ window.onresize = (f=>(f(),f))(_=>{
 });
 
 var p = {
-    x:1,y:0.5,speed:.1,angle: Math.random() * 10,
+    x:1,y:0.5,speed:.5,angle: Math.random() * 10,
     r:.025,
     w:.00625,
     minSpeed: 0.005
@@ -87,7 +87,7 @@ function draw(){
 
 Canvas.createAnimation((_,elapsedTime)=>{
     if(elapsedTime + p.w / p.speed < 0) for(;elapsedTime + p.w / p.speed < 0; elapsedTime += p.w / p.speed){
-        if(updpate(-p.w / p.speed)) return true;
+        if(update(-p.w / p.speed)) return true;
     }
     else if(update(elapsedTime)) return true;
     draw();
