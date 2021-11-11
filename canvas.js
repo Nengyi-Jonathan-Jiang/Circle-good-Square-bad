@@ -491,7 +491,6 @@ class Canvas {
             let then = 0;
             const f2 = (t) => {
                 if (f(0.001 * t, 0.001 * (then - t))){
-                    
                     return resolve();
                 }
                 then = t;

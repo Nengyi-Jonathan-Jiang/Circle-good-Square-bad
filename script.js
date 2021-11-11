@@ -1,18 +1,51 @@
+const {sin, cos} = Math;
+
 let container = document.getElementById("container")
 let c = new Canvas(0,0,container);
+c.ctx.lineCap = "square";
 
 window.onresize = (f=>(f(),f))(_=>{
     c.resize();
 });
 
 var p = {
-    x:1,y:0.5,speed:.5,angle: Math.random() * 10,
+    x:1,y:0.5,speed:2.5,angle: Math.random() * 10,
     r:.025,
     w:.00625,
-    minSpeed: 0.005
+    minSpeed: 0.005,
+    maxSpeed: 2.5
 };
 
 var lastPositions = [];
+
+/**
+ * @typedef {{
+ *     x:number, y:number,
+ *     t:number,
+ *     vx: number,
+ *     vy: number,
+ * }} square
+ * 
+ * @typedef {{
+ *     x:number, y:number,
+ *     t:number,
+ *     vx: number,
+ *     vy: number,
+ * }} circle
+ */
+
+/**@type {square[]}*/
+var squares = [];
+squares.push({
+    x:1,
+    y:0.5,
+    t:0,
+    vx: 0,
+    vy: 0,
+});
+/**@type {circle[]}*/
+var circles = [];
+
 
 function coord(x, y){switch(screen.orientation.type){
     case "portrait-primary":    return scale(1 - y, x    );
@@ -61,11 +94,17 @@ var lastFrameTime = -1;
 window.onkeypress=_=>{console.log(lastPositions.length)}
 
 function update(elapsedTime){
-    p.speed *= Math.pow(1.1, elapsedTime);
+    for(let square of squares){
+        square.t += elapsedTime;
+        square.vx += Math.random() * .01;
+    }
+
+
+    p.speed *= Math.pow(1.05, elapsedTime);
     if(p.speed < p.minSpeed) return true;
 
-    p.x += p.speed * Math.sin(p.angle * 2 * Math.PI) * elapsedTime;
-    p.y += p.speed * Math.cos(p.angle * 2 * Math.PI) * elapsedTime;
+    p.x += p.speed * sin(p.angle * 2 * Math.PI) * elapsedTime;
+    p.y += p.speed * cos(p.angle * 2 * Math.PI) * elapsedTime;
 
     if(p.x + p.r > 2) p.x = 2 - p.r, p.angle = - p.angle;
     if(p.x < p.r)     p.x = p.r,     p.angle = - p.angle;
@@ -75,9 +114,42 @@ function update(elapsedTime){
     lastPositions.push([p.x,p.y]);
     while(lastPositions.length > Math.min(100, p.speed / p.w)) lastPositions.shift();
 }
+
+const square = (a)=>[[sin(a),cos(a)],[cos(a),-sin(a)],[-sin(a),-cos(a)],[-cos(a),sin(a)]];
+
 function draw(){
     c.clear("#014");
     c.setStrokeWidth(scale(p.w));
+
+    c.setDrawColor("#F07");
+    c.ctx.lineCap = "square";
+    for(let square of squares){
+        c.polygon(coord(square.x, square.y),[
+            [ sin(square.t), cos(square.t)],
+            [ cos(square.t),-sin(square.t)],
+            [-sin(square.t),-cos(square.t)],
+            [-cos(square.t), sin(square.t)],
+        ].map(i=>coord(...i.map(j=>j*(p.r)))))
+    }
+    c.setDrawColor("#F078");
+    for(let square of squares){
+        c.polygon(coord(square.x, square.y),[
+            [ sin(square.t), cos(square.t)],
+            [ cos(square.t),-sin(square.t)],
+            [-sin(square.t),-cos(square.t)],
+            [-cos(square.t), sin(square.t)],
+        ].map(i=>coord(...i.map(j=>j*(p.r + 1 * p.w)))))
+    }
+    c.setDrawColor("#F074");
+    for(let square of squares){
+        c.polygon(coord(square.x, square.y),[
+            [ sin(square.t), cos(square.t)],
+            [ cos(square.t),-sin(square.t)],
+            [-sin(square.t),-cos(square.t)],
+            [-cos(square.t), sin(square.t)],
+        ].map(i=>coord(...i.map(j=>j*(p.r + 2 *  p.w)))))
+    }
+
     c.setDrawColor("#FD0");
     c.circle(...coord(p.x, p.y), ...scale(p.r));
 
