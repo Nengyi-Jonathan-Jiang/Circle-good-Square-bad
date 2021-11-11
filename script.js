@@ -1,51 +1,38 @@
-const {sin, cos} = Math;
+const {sin, cos, sqrt, floor, min, max} = Math;
 
 let container = document.getElementById("container")
 let c = new Canvas(0,0,container);
 c.ctx.lineCap = "square";
+c.setFont("monospace");
 
-window.onresize = (f=>(f(),f))(_=>{
-    c.resize();
-});
+window.onresize = (f=>(f(),f))(_=>c.resize());
 
 var p = {
     x:1,y:0.5,speed:0.5,angle: Math.random() * 10,
     r:.025,
-    w:.00625,
-    minSpeed: 0.005,
-    maxSpeed: 2.5
+    w:.003125,
+    minSpeed: 0.05,
+    maxSpeed: 1
 };
 
 var lastPositions = [];
 
 /**
  * @typedef {{
- *     x:number, y:number,
- *     t:number,
- *     vx: number,
- *     vy: number,
- * }} square
- * 
- * @typedef {{
- *     x:number, y:number,
- *     t:number,
- *     vx: number,
- *     vy: number,
- * }} circle
+ *     x:number, y:number, t:number,
+ *     vx: number, vy: number,
+ * }} obj
  */
 
-/**@type {square[]}*/
+/**@type {obj[]}*/
 var squares = [];
-/**@type {circle[]}*/
+/**@type {obj[]}*/
 var circles = [];
 
 
-function coord(x, y){switch(screen.orientation.type){
-    case "portrait-primary":    return scale(1 - y, x    );
-    case "portrait-secondary":  return scale(y,     2 - x);
-    case "landscape-primary":   return scale(x,     y    );
-    case "landscape-secondary": return scale(2 - x, 1 - y);
-}}
+function coord(x, y){
+    return c.width > c.height ? scale(x, y) : scale(1 - y, x);
+}
 function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
 
 {   //Controls
@@ -53,15 +40,10 @@ function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
     function mouseDownHandler(newX, newY){oldX = newX, oldY = newY}
     function mouseUpHandler(newX, newY){
         if(oldX == undefined) return;
-        let angle = Math.atan2(newY - oldY, newX - oldX) / Math.PI / 2;
+        let angle = - Math.atan2(newY - oldY, newX - oldX) / Math.PI / 2;
 
         function correctAngle(angle){
-            switch(screen.orientation.type){
-                case "portrait-primary":    return .00 - angle;
-                case "portrait-secondary":  return .50 - angle;
-                case "landscape-primary":   return .75 - angle;
-                case "landscape-secondary": return .25 - angle;
-            }
+            return c.width > c.height ? angle - .25 : angle;
         }
         p.angle = correctAngle(angle);
         oldX = oldY = undefined;
@@ -89,17 +71,17 @@ window.onkeypress=_=>{console.log(lastPositions.length)}
 function mag(x,y){return Math.sqrt(x * x + y * y)}
 
 function update(elapsedTime){
-    if(Math.random() < .0025){
+    if(Math.random() < .5 * -elapsedTime){
         squares.push({x:Math.random() * 2,y:Math.random(),t:0,vx:0,vy:0});
     }
-    if(Math.random() < .002){
+    if(Math.random() < .2 * -elapsedTime){
         circles.push({x:Math.random() * 2,y:Math.random(),t:0,vx:0,vy:0});
     }
 
     for(let s of squares){
         s.t -= elapsedTime;
-        s.vx += (Math.random() - .5) * .00005;
-        s.vy += (Math.random() - .5) * .00005;
+        s.vx += (Math.random() - .5) * .01 * elapsedTime;
+        s.vy += (Math.random() - .5) * .01 * elapsedTime;
         s.x += s.vx;
         s.y += s.vy;
 
@@ -109,19 +91,19 @@ function update(elapsedTime){
         if(s.y < p.r)     s.y = p.r,     s.vy *= -1;
 
         let s2 = mag(s.vx, s.vy);
-        const maxSpeed = .001;
+        const maxSpeed = .002;
 
         if(s2 > maxSpeed) s.vx *= maxSpeed / s2, s.vy *= maxSpeed / s2;
 
         if(mag(s.x - p.x, s.y - p.y) < 2 * p.r){
             s.t = Number.POSITIVE_INFINITY;
-            p.speed *= 0.9;
+            p.speed *= 0.8;
         }
     }
     for(let c of circles){
         c.t -= elapsedTime;
-        c.vx += (Math.random() - .5) * .00005;
-        c.vy += (Math.random() - .5) * .00005;
+        c.vx += (Math.random() - .5) * .01 * elapsedTime;
+        c.vy += (Math.random() - .5) * .01 * elapsedTime;
         c.x += c.vx;
         c.y += c.vy;
 
@@ -131,7 +113,7 @@ function update(elapsedTime){
         if(c.y < p.r)     c.y = p.r,     c.vy *= -1;
 
         let s2 = mag(c.vx, c.vy);
-        const maxSpeed = .001;
+        const maxSpeed = .002;
 
         if(s2 > maxSpeed) c.vx *= maxSpeed / s2, c.vy *= maxSpeed / s2;
 
@@ -141,8 +123,8 @@ function update(elapsedTime){
         }
     }
 
-    circles = circles.filter((c)=>c.t<=10);
-    squares = squares.filter((s)=>s.t<=10);
+    circles = circles.filter((c)=>c.t<=8);
+    squares = squares.filter((s)=>s.t<=15);
 
 
     p.speed *= Math.pow(1.01, elapsedTime);
@@ -175,7 +157,7 @@ function draw(){
             [ cos(square.t),-sin(square.t)],
             [-sin(square.t),-cos(square.t)],
             [-cos(square.t), sin(square.t)],
-        ].map(i=>coord(...i.map(j=>j*(p.r)))))
+        ].map(i=>coord(...i.map(j=>j*p.r))))
     }
     c.setDrawColor("#F078");
     for(let square of squares){
@@ -193,7 +175,7 @@ function draw(){
             [ cos(square.t),-sin(square.t)],
             [-sin(square.t),-cos(square.t)],
             [-cos(square.t), sin(square.t)],
-        ].map(i=>coord(...i.map(j=>j*(p.r + 2 *  p.w)))))
+        ].map(i=>coord(...i.map(j=>j*(p.r + 2 * p.w)))))
     }
 
     c.setDrawColor("#0FA");
@@ -211,23 +193,29 @@ function draw(){
 
     c.setDrawColor("#FD0");
     c.circle(...coord(p.x, p.y), ...scale(p.r));
+    c.setDrawColor("#FD08");
+    c.circle(...coord(p.x, p.y), ...scale(p.r + p.w * 1));
+    c.setDrawColor("#FD04");
+    c.circle(...coord(p.x, p.y), ...scale(p.r + p.w * 2));
+    c.setDrawColor("#FD02");
+    c.circle(...coord(p.x, p.y), ...scale(p.r + p.w * 3));
+    c.setDrawColor("#FD01");
+    c.circle(...coord(p.x, p.y), ...scale(p.r + p.w * 4));
 
     c.setDrawColor("#FD01");
     for(let [x,y] of lastPositions) c.circle(...coord(x, y), ...scale(p.r));
+
+    c.setDrawColor("#FFF");
+    c.fillText("SPEED: " + Math.floor(p.speed * 500) / 500, c.width / 2, ...scale(.05), ...scale(.05));
 }
 
 Canvas.createAnimation((_,elapsedTime)=>{
-    if(elapsedTime + p.w / p.speed < 0) for(;elapsedTime + p.w / p.speed < 0; elapsedTime += p.w / p.speed){
-        if(update(-p.w / p.speed)) return true;
-    }
-    else if(update(elapsedTime)) return true;
+    if(update(elapsedTime)) return true;
     draw();
 }).then(_=>{
     alert("You Lose!");
     c.setDrawColor("#000");
     Canvas.createAnimation(_=>{
-        c.clear("#014");
-        c.setStrokeWidth(scale(p.w));
-        c.circle(...coord(p.x, p.y), ...scale(p.r));
+        draw();
     })
 });
