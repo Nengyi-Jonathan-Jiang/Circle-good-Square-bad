@@ -14,19 +14,15 @@ var p = {
 
 var lastPositions = [];
 
-screen.orientation.angle;
-
-function coord(x, y){
-    switch(screen.orientation.type){
-        case "portrait-primary":    return scale(1 - y, x    );
-        case "portrait-secondary":  return scale(y,     2 - x);
-        case "landscape-primary":   return scale(x,     y    );
-        case "landscape-secondary": return scale(2 - x, 1 - y);
-    }
-}
+function coord(x, y){switch(screen.orientation.type){
+    case "portrait-primary":    return scale(1 - y, x    );
+    case "portrait-secondary":  return scale(y,     2 - x);
+    case "landscape-primary":   return scale(x,     y    );
+    case "landscape-secondary": return scale(2 - x, 1 - y);
+}}
 function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
 
-{
+{   //Controls
     let oldX, oldY;
     function mouseDownHandler(newX, newY){oldX = newX, oldY = newY}
     function mouseUpHandler(newX, newY){
@@ -44,8 +40,6 @@ function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
         p.angle = correctAngle(angle);
         oldX = oldY = undefined;
     }
-
-
     c.canvas.addEventListener("mousedown",e=>{
         if(e.buttons & 1) mouseDownHandler(e.clientX,e.clientY);
     });
@@ -58,7 +52,6 @@ function scale(...a){return a.map(i=>i* Math.min(c.width,c.height))}
     c.canvas.addEventListener("touchend",e=>{
         mouseUpHandler(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
     });
-
     c.canvas.addEventListener("contextmenu",e=>e.preventDefault());
     c.canvas.addEventListener("scroll",e=>{e.preventDefault()});
 }
@@ -67,7 +60,7 @@ var lastFrameTime = -1;
 
 window.onkeypress=_=>{console.log(lastPositions.length)}
 
-function f(elapsedTime, draw){
+function update(elapsedTime){
     p.speed *= Math.pow(1.1, elapsedTime);
     if(p.speed < p.minSpeed) return true;
 
@@ -94,15 +87,16 @@ function draw(){
 
 Canvas.createAnimation((_,elapsedTime)=>{
     if(elapsedTime + p.w / p.speed < 0) for(;elapsedTime + p.w / p.speed < 0; elapsedTime += p.w / p.speed){
-        if(f(-p.w / p.speed)) return true;
+        if(updpate(-p.w / p.speed)) return true;
     }
-    else if(f(elapsedTime)) return true;
+    else if(update(elapsedTime)) return true;
     draw();
 }).then(_=>{
     alert("You Lose!");
     c.setDrawColor("#000");
     Canvas.createAnimation(_=>{
         c.clear("#014");
+        c.setStrokeWidth(scale(p.w));
         c.circle(...coord(p.x, p.y), ...scale(p.r));
     })
 });
