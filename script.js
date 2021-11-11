@@ -1,22 +1,15 @@
 const {sin, cos, pow, atan2, sqrt, floor, min, max, random, PI} = Math;
 
-let container = document.getElementById("container")
 let c = new Canvas(0,0,container);
 c.ctx.lineCap = "square";
 c.setFont("monospace");
 
 window.onresize = (f=>(f(),f))(_=>c.resize());
 
-const R = .025, W = .003125;
-const PLAYER_MIN_SPEED = 0.05;
-const PLAYER_MAX_SPEED = 2;
-
-/**
- * @typedef {{
- *     x:number, y:number, t:number,
- *     vx: number, vy: number,
- * }} obj
- */
+const R = .025,
+      W = .003125,
+      PLAYER_MIN_SPEED = 0.05,
+      PLAYER_MAX_SPEED = 2;
 
 class NPO{
     /** @param {(r:number)=>any} drawFunc @param {number} boost @param {number} maxT @param {number} maxSpeed @param {number} jitter */
@@ -119,15 +112,6 @@ class PO{
         for(let [x,y] of this.lastPositions) c.circle(...coord(x, y), ...scale(R));
     }
 }
-
-
-// var p = {
-//     x:1,y:0.5,speed:0.5,angle: random() * 10,
-//     minSpeed: 0.05,
-//     maxSpeed: 2
-// };
-
-//var lastPositions = [];
 
 var p = new PO();
 
