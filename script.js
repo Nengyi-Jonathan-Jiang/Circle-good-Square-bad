@@ -9,7 +9,7 @@ window.onresize = (f=>(f(),f))(_=>{
 });
 
 var p = {
-    x:1,y:0.5,speed:2.5,angle: Math.random() * 10,
+    x:1,y:0.5,speed:0.5,angle: Math.random() * 10,
     r:.025,
     w:.00625,
     minSpeed: 0.005,
@@ -36,13 +36,6 @@ var lastPositions = [];
 
 /**@type {square[]}*/
 var squares = [];
-squares.push({
-    x:1,
-    y:0.5,
-    t:0,
-    vx: 0,
-    vy: 0,
-});
 /**@type {circle[]}*/
 var circles = [];
 
@@ -93,15 +86,68 @@ var lastFrameTime = -1;
 
 window.onkeypress=_=>{console.log(lastPositions.length)}
 
+function mag(x,y){return Math.sqrt(x * x + y * y)}
+
 function update(elapsedTime){
-    for(let square of squares){
-        square.t += elapsedTime;
-        square.vx += Math.random() * .01;
+    if(Math.random() < .0025){
+        squares.push({x:Math.random() * 2,y:Math.random(),t:0,vx:0,vy:0});
+    }
+    if(Math.random() < .002){
+        circles.push({x:Math.random() * 2,y:Math.random(),t:0,vx:0,vy:0});
     }
 
+    for(let s of squares){
+        s.t -= elapsedTime;
+        s.vx += (Math.random() - .5) * .00005;
+        s.vy += (Math.random() - .5) * .00005;
+        s.x += s.vx;
+        s.y += s.vy;
 
-    p.speed *= Math.pow(1.05, elapsedTime);
+        if(s.x + p.r > 2) s.x = 2 - p.r, s.vx *= -1;
+        if(s.x < p.r)     s.x = p.r,     s.vx *= -1
+        if(s.y + p.r > 1) s.y = 1 - p.r, s.vy *= -1;
+        if(s.y < p.r)     s.y = p.r,     s.vy *= -1;
+
+        let s2 = mag(s.vx, s.vy);
+        const maxSpeed = .001;
+
+        if(s2 > maxSpeed) s.vx *= maxSpeed / s2, s.vy *= maxSpeed / s2;
+
+        if(mag(s.x - p.x, s.y - p.y) < 2 * p.r){
+            s.t = Number.POSITIVE_INFINITY;
+            p.speed *= 0.9;
+        }
+    }
+    for(let c of circles){
+        c.t -= elapsedTime;
+        c.vx += (Math.random() - .5) * .00005;
+        c.vy += (Math.random() - .5) * .00005;
+        c.x += c.vx;
+        c.y += c.vy;
+
+        if(c.x + p.r > 2) c.x = 2 - p.r, c.vx *= -1;
+        if(c.x < p.r)     c.x = p.r,     c.vx *= -1
+        if(c.y + p.r > 1) c.y = 1 - p.r, c.vy *= -1;
+        if(c.y < p.r)     c.y = p.r,     c.vy *= -1;
+
+        let s2 = mag(c.vx, c.vy);
+        const maxSpeed = .001;
+
+        if(s2 > maxSpeed) c.vx *= maxSpeed / s2, c.vy *= maxSpeed / s2;
+
+        if(mag(c.x - p.x, c.y - p.y) < 2 * p.r){
+            c.t = Number.POSITIVE_INFINITY;
+            p.speed *= 1.5;
+        }
+    }
+
+    circles = circles.filter((c)=>c.t<=10);
+    squares = squares.filter((s)=>s.t<=10);
+
+
+    p.speed *= Math.pow(1.01, elapsedTime);
     if(p.speed < p.minSpeed) return true;
+    if(p.speed > p.maxSpeed) p.speed = p.maxSpeed;
 
     p.x += p.speed * sin(p.angle * 2 * Math.PI) * elapsedTime;
     p.y += p.speed * cos(p.angle * 2 * Math.PI) * elapsedTime;
@@ -148,6 +194,19 @@ function draw(){
             [-sin(square.t),-cos(square.t)],
             [-cos(square.t), sin(square.t)],
         ].map(i=>coord(...i.map(j=>j*(p.r + 2 *  p.w)))))
+    }
+
+    c.setDrawColor("#0FA");
+    for(let circle of circles){
+        c.circle(...coord(circle.x,circle.y),...scale(p.r));
+    }
+    c.setDrawColor("#0FA8");
+    for(let circle of circles){
+        c.circle(...coord(circle.x,circle.y),...scale(p.r + p.w));
+    }
+    c.setDrawColor("#0FA4");
+    for(let circle of circles){
+        c.circle(...coord(circle.x,circle.y),...scale(p.r + 2 * p.w));
     }
 
     c.setDrawColor("#FD0");
