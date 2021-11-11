@@ -23,4 +23,5 @@ div#container>canvas{
     position: absolute;
     top: 0; left: 0;
     width: var(--w); height: var(--h);
+	touch-action: none;
 }
