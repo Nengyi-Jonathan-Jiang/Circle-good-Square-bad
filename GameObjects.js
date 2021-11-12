@@ -12,9 +12,9 @@ function initGameObjectsClasses(c){
             this.x = random() * 2;
             this.y = random();
             
-            let angle = random() * 2 * PI, speed = random() * maxSpeed;
-            this.vx = speed * sin(angle);
-            this.vy = speed * cos(angle);
+            let angle = random() * 2 * PI, energy = random() * maxSpeed;
+            this.vx = energy * sin(angle);
+            this.vy = energy * cos(angle);
         }
         /** @param {number} elapsedTime */
         update(elapsedTime){
@@ -30,8 +30,8 @@ function initGameObjectsClasses(c){
             if(this.y + R > 1) this.y = 1 - R, this.vy *= -1;
             if(this.y < R)     this.y = R,     this.vy *= -1;
 
-            let speed = sqrt(this.vx * this.vx + this.vy * this.vy);
-            if(speed > this.maxSpeed) this.vx *= this.maxSpeed / speed, this.vy *= this.maxSpeed / speed;
+            let energy = sqrt(this.vx * this.vx + this.vy * this.vy);
+            if(energy > this.maxSpeed) this.vx *= this.maxSpeed / energy, this.vy *= this.maxSpeed / energy;
         }
         draw(r){this.drawFunc.call(this,r)}
         collide(x,y){
@@ -51,16 +51,17 @@ function initGameObjectsClasses(c){
         static drawCircleFunc(r){
             c.circle(...coord(this.x,this.y),...scale(r));
         }
-
-        static makeSquare(){return new NPO(NPO.drawSquareFunc, -1, 16, .002, .0001)}
-        static makeCircle(){return new NPO(NPO.drawCircleFunc,  2,  8, .002, .0001)}
     }
 
 
     class PO{
         constructor(){
+            this.x = this.y = this.energy = this.angle = this.lastPositions = this.turns = undefined;
+            this.reset();
+        }
+        reset(){
             this.x = 1; this.y = .5;
-            this.speed = 3;
+            this.energy = 3;
             this.angle = random() * 2 * PI;
 
             /**@type {[number,number][]}*/
@@ -73,13 +74,13 @@ function initGameObjectsClasses(c){
             this.turns.push([this.x, this.y, 0]);
         }
         update(elapsedTime){
-            this.speed += .1 * elapsedTime;
+            this.energy += .1 * elapsedTime;
 
-            if(this.speed <= 0) return true;
+            if(this.energy <= 0) return true;
 
-            let ds = elapsedTime * PLAYER_MAX_SPEED * (Math.pow(1.1 , -this.speed) - 1);
+            let ds = elapsedTime * PLAYER_MAX_SPEED * (Math.pow(1.1 , -this.energy) - 1);
 
-            let maxTailLength = min(128, 10 * sqrt(this.speed));
+            let maxTailLength = min(128, 10 * sqrt(this.energy));
 
             for(;ds > 0; ds -= W){
                 let _ds = min(ds,W);

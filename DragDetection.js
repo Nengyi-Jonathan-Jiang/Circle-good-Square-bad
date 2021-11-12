@@ -20,3 +20,16 @@ function createDragDetector(el,func){
         mouseUpHandler(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
     });
 }
+
+function createClickDetector(el){
+    let res = {
+        _clicked: false,
+        clicked(){
+            let r = this._clicked;
+            this._clicked = false;
+            return r;
+        }
+    }
+    el.addEventListener("click",_=>{res._clicked = true});
+    return res;
+}

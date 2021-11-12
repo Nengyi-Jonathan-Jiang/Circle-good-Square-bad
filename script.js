@@ -11,13 +11,20 @@ const R = .025,
       PLAYER_MAX_SPEED = 2;
 
 const {NPO,PO} = initGameObjectsClasses(c);
+function makeSquare(){return new NPO(NPO.drawSquareFunc, -1, 16, .002, .0001)}
+function makeCircle(){return new NPO(NPO.drawCircleFunc,  2,  8, .002, .0001)}
+
 
 var p = new PO();
 
 /**@type {NPO[]}*/
 var squares = [];
 /**@type {NPO[]}*/
+var squares2 = [];
+/**@type {NPO[]}*/
 var circles = [];
+
+var score = 0;
 
 function coord(x, y){return c.width > c.height ? scale(x, y) : scale(1 - y, x)}
 function scale(...a){return a.map(i=>i* min(c.width,c.height))}
@@ -25,24 +32,25 @@ function scale(...a){return a.map(i=>i* min(c.width,c.height))}
 createDragDetector(c.canvas,(oldX,oldY,newX,newY)=>{
     p.turn(- atan2(newY - oldY, newX - oldX) / PI / 2 - (c.width > c.height) * .25);
 })
-
-var lastFrameTime = -1;
+var clicked = createClickDetector(c.canvas);
 
 window.onkeypress=_=>{console.log(lastPositions.length)}
 
 function update(elapsedTime){
-    if(random() < .5 * -elapsedTime) squares.push(NPO.makeSquare());
-    if(random() < .2 * -elapsedTime) circles.push(NPO.makeCircle());
+    if(random() < .5 * -elapsedTime) squares.push(makeSquare());
+    if(random() < .2 * -elapsedTime) circles.push(makeCircle());
 
     for(let o of [...squares,...circles]){
         o.update(elapsedTime);
-        if(o.collide(p.x,p.y)) p.speed += o.boost;
+        if(o.collide(p.x,p.y)) p.energy += o.boost;
     }
 
     circles = circles.filter(o=>o.filter());
     squares = squares.filter(o=>o.filter());
 
     if(p.update(elapsedTime)) return true;
+
+    score -= p.energy * elapsedTime;
 }
 
 function draw(){
@@ -58,22 +66,43 @@ function draw(){
     p.draw();
 
     c.setDrawColor("#FFF");
-    c.fillText("SPEED: " + ceil(p.speed), c.width / 2, ...scale(.05), ...scale(.05));
+    c.fillText("ENERGY: " + ceil(p.energy) + "  |  SCORE: " + ceil(score), c.width / 2, ...scale(.05), ...scale(.05));
 }
 
-function gameAnimationFrame(_,elapsedTime){
-    if(update(elapsedTime)) return true;
-    draw();
-}
 
-for(let i = 0; i < 10; i++) squares.push(NPO.makeSquare());
-for(let i = 0; i < 5; i++) circles.push(NPO.makeCircle());
+function reset(){
+    score = 0;
+    p.reset();
+    squares = [];
+    circles = [];
 
-Canvas.createAnimation(gameAnimationFrame).then(_=>{
-    alert("You Lose!");
-    c.setDrawColor("#000");
-    Canvas.createAnimation(_=>{
+    for(let i = 0; i < 10;){
+        squares.unshift(makeSquare());
+        if(squares[0].collide(p.x,p.y)) squares.shift();
+        else i++, squares[0].t = random() * PI / 2;
+    }
+    for(let i = 0; i <  5; i++){
+        circles.unshift(makeCircle());
+        if(circles[0].collide(p.x,p.y)) circles.shift();
+        else i++, circles[0].t = random() * PI / 2;
+    }
+    
+    Canvas.createAnimation((_,elapsedTime)=>{
+        if(update(elapsedTime)) return true;
         draw();
-        c.clear("#F006");
-    }).then(gameAnimationFrame);
-});
+    }).then(_=>{
+        p.energy = 0;
+        clicked.clicked();
+        Canvas.createAnimation(_=>{
+            draw();
+            c.clear("#F006");
+            c.setDrawColor("#FFF")
+            c.fillText("GAME OVER",c.w/2,c.h/2 - c.w/20,c.w/20);
+            c.fillText("FINAL SCORE: " + ceil(score), c.w/2,c.h/2,c.w/30);
+            c.fillText("CLICK ANYWHERE TO PLAY AGAIN", c.w/2,c.h/2 + c.w/25,c.w/30);
+            if(clicked.clicked()) return true;
+        }).then(reset);
+    });
+}
+
+reset();
