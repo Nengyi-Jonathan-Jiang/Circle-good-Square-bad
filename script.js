@@ -64,15 +64,15 @@ class NPO{
         c.circle(...coord(this.x,this.y),...scale(r));
     }
 
-    static makeSquare(){return new NPO(NPO.drawSquareFunc, 0.8, 16, .002, .0001)}
-    static makeCircle(){return new NPO(NPO.drawCircleFunc, 1.5,  8, .002, .0001)}
+    static makeSquare(){return new NPO(NPO.drawSquareFunc, -1, 16, .002, .0001)}
+    static makeCircle(){return new NPO(NPO.drawCircleFunc,  2,  8, .002, .0001)}
 }
 
 
 class PO{
     constructor(){
         this.x = 1; this.y = .5;
-        this.speed = 0.5;
+        this.speed = 10
         this.angle = random() * 2 * PI;
 
         /**@type {[number,number][]}*/
@@ -85,12 +85,12 @@ class PO{
         this.turns.push([this.x, this.y, 0]);
     }
     update(elapsedTime){
-        this.speed *= pow(1.01, elapsedTime);
+        this.speed += .1 * elapsedTime;
 
         if(this.speed < PLAYER_MIN_SPEED) return true;
-        if(this.speed > PLAYER_MAX_SPEED) this.speed = PLAYER_MAX_SPEED;
+        //if(this.speed > PLAYER_MAX_SPEED) this.speed = PLAYER_MAX_SPEED;
 
-        let ds = this.speed * -elapsedTime;
+        let ds = elapsedTime * PLAYER_MAX_SPEED * (Math.pow(1.01 , -this.speed) - 1);
 
         let maxTailLength = min(128,this.speed / W);
 
@@ -180,7 +180,7 @@ function update(elapsedTime){
 
     for(let o of [...squares,...circles]){
         o.update(elapsedTime);
-        if(o.collide(p.x,p.y)) p.speed *= o.boost;
+        if(o.collide(p.x,p.y)) p.speed += o.boost;
     }
 
     circles = circles.filter(o=>o.filter());
@@ -202,7 +202,7 @@ function draw(){
     p.draw();
 
     c.setDrawColor("#FFF");
-    c.fillText("SPEED: " + floor(p.speed * 500) / 500, c.width / 2, ...scale(.05), ...scale(.05));
+    c.fillText("SPEED: " + floor(p.speed), c.width / 2, ...scale(.05), ...scale(.05));
 }
 
 function gameAnimationFrame(_,elapsedTime){
