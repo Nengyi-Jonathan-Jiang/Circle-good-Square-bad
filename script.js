@@ -3,7 +3,11 @@ c.ctx.lineCap = "square";
 c.setFont("monospace");
 c.canvas.addEventListener("contextmenu",e=>e.preventDefault());
 
-window.onresize = (f=>(f(),f))(_=>c.resize());
+window.onresize = (f=>(f(),f))(_=>{
+    document.body.style.setProperty("--W",window.innerWidth);
+    document.body.style.setProperty("--H",window.innerheight);
+    c.resize();
+});
 
 const R = .025,
       W = .003125,
@@ -32,30 +36,30 @@ var obstacles = new Map([
     ["squares",{
         list:[],
         create: _=>{return new NPO(NPO.drawSquareFunc, -1, 16, .002, .0001)},
-        color:"#F0F",
-        initial_num: 8,
-        spawnChance: .5,
+        color:"#F07",
+        initial_num: 14,
+        spawnChance: .6,
     }],
     ["squares2",{
         list:[],
-        create: _=>{return new NPO(NPO.drawSquareFunc, -1, 16, .002, .0001)},
-        color:"#F07",
-        initial_num: 8,
-        spawnChance: .5,
+        create: _=>{return new NPO(NPO.drawSquareFunc, -3, 16, .01, .1)},
+        color:"#F0F",
+        initial_num: 2,
+        spawnChance: .1,
     }],
     ["circles",{
         list:[],
         create: _=>{return new NPO(NPO.drawCircleFunc,  2,  8, .002, .0001)},
-        color:"#0FF",
-        initial_num: 4,
-        spawnChance: .2,
+        color:"#0F4",
+        initial_num: 7,
+        spawnChance: .3,
     }],
     ["circles2",{
         list:[],
-        create: _=>{return new NPO(NPO.drawCircleFunc,  2,  8, .002, .0001)},
-        color:"#0F4",
-        initial_num: 4,
-        spawnChance: .2,
+        create: _=>{return new NPO(NPO.drawCircleFunc,  5,  8, .01, .1)},
+        color:"#0FF",
+        initial_num: 1,
+        spawnChance: .1,
     }],
 ])
 
@@ -73,7 +77,9 @@ window.onkeypress=_=>{console.log(lastPositions.length)}
 
 function update(elapsedTime){
     for(let t of obstacles.values()){
-        if(random() < t.spawnChance * elapsedTime) t.list.push(t.create());
+        for(let i = 0; i < t.spawnChance; i += .01){
+            if(random() < elapsedTime * .01) t.list.push(t.create());
+        }
     }
 
     for(let o of [].concat(...[...obstacles.values()].map(i=>i.list))){
@@ -85,7 +91,7 @@ function update(elapsedTime){
 
     if(p.update(elapsedTime)) return true;
 
-    score += p.energy * elapsedTime;
+    score += .1 * p.energy * p.energy * elapsedTime;
 }
 
 function draw(){
@@ -111,7 +117,11 @@ function draw(){
 (f=>f())(function reset(){
     score = 0;
     p.reset();
-    for(let t of obstacles.values()) t.list = new Array(t.initial_num).fill(null).map(_=>t.create());
+    for(let t of obstacles.values()) t.list = new Array(t.initial_num).fill(null).map(_=>{
+        let res = t.create();
+        res.t += random() * PI * 2;
+        return res;
+    });
 
     Canvas.createAnimation((_,elapsedTime)=>{
         if(update(elapsedTime)) return true;

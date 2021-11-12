@@ -40,8 +40,13 @@ class NPO{
     }
     filter(){return this.t < this.maxT}
 
+    flicker(){
+        let f = random();
+        return(f * 0.2 > this.t || f > this.maxT - this.t);
+    }
+
     static drawSquareFunc(r){
-        if(Math.random() > this.maxT - this.t) return;
+        if(this.flicker()) return;
         c.polygon(coord(this.x, this.y),[
             [ sin(this.t), cos(this.t)],
             [ cos(this.t),-sin(this.t)],
@@ -50,7 +55,7 @@ class NPO{
         ].map(i=>coord(...i.map(j=>j*r))))
     }
     static drawCircleFunc(r){
-        if(Math.random() > this.maxT - this.t) return;
+        if(this.flicker()) return;
         c.circle(...coord(this.x,this.y),...scale(r));
     }
 }
@@ -63,7 +68,7 @@ class PO{
     }
     reset(){
         this.x = 1; this.y = .5;
-        this.energy = 3;
+        this.energy = 5;
         this.angle = random() * 2 * PI;
 
         /**@type {[number,number][]}*/
@@ -81,6 +86,9 @@ class PO{
         if(this.energy <= 0) return true;
 
         let ds = elapsedTime * PLAYER_MAX_SPEED * (1 - Math.pow(1.1 , -this.energy));
+
+        //This is more complicated than the update function for NPO's b/c
+        //need to store info for the tail
 
         let maxTailLength = min(128, 10 * sqrt(this.energy));
 
