@@ -1,4 +1,4 @@
-const {sin, cos, pow, atan2, sqrt, floor, min, max, random, PI} = Math;
+const {sin, cos, pow, atan2, sqrt, floor, ceil, min, max, random, PI} = Math;
 
 let c = new Canvas(0,0,container);
 c.ctx.lineCap = "square";
@@ -87,12 +87,11 @@ class PO{
     update(elapsedTime){
         this.speed += .1 * elapsedTime;
 
-        if(this.speed < PLAYER_MIN_SPEED) return true;
-        //if(this.speed > PLAYER_MAX_SPEED) this.speed = PLAYER_MAX_SPEED;
+        if(this.speed <= 0) return true;
 
-        let ds = elapsedTime * PLAYER_MAX_SPEED * (Math.pow(1.01 , -this.speed) - 1);
+        let ds = elapsedTime * PLAYER_MAX_SPEED * (Math.pow(1.1 , -this.speed) - 1);
 
-        let maxTailLength = min(128,this.speed / W);
+        let maxTailLength = min(128, 10 * sqrt(this.speed));
 
         for(;ds > 0; ds -= W){
             let _ds = min(ds,W);
@@ -116,16 +115,18 @@ class PO{
         }
     
         c.setDrawColor("#FD01");
-        let positions = [this.lastPositions[0],...this.turns,[this.x,this.y]];
-        for(let i = 0; i + 1 < positions.length;){
-            let [prev,next] = [positions[i],positions[++i]];
-            let length = sqrt((prev[0] - next[0]) * (prev[0] - next[0]) + (prev[1] - next[1]) * (prev[1] - next[1]));
-            let _length = 1 / length;
-            for(let j = 0; j < length; j += W){
-                c.circle(...coord(
-                    prev[0] + (next[0] - prev[0]) * j * _length,
-                    prev[1] + (next[1] - prev[1]) * j * _length,
-                ), scale(R)[0]);
+        if(this.lastPositions.length){
+           let positions = [this.lastPositions[0],...this.turns,[this.x,this.y]];
+            for(let i = 0; i + 1 < positions.length;){
+                let [prev,next] = [positions[i],positions[++i]];
+                let length = sqrt((prev[0] - next[0]) * (prev[0] - next[0]) + (prev[1] - next[1]) * (prev[1] - next[1]));
+                let _length = 1 / length;
+                for(let j = 0; j < length; j += W){
+                    c.circle(...coord(
+                        prev[0] + (next[0] - prev[0]) * j * _length,
+                        prev[1] + (next[1] - prev[1]) * j * _length,
+                    ), scale(R)[0]);
+                }
             }
         }
     }
@@ -202,7 +203,7 @@ function draw(){
     p.draw();
 
     c.setDrawColor("#FFF");
-    c.fillText("SPEED: " + floor(p.speed), c.width / 2, ...scale(.05), ...scale(.05));
+    c.fillText("SPEED: " + ceil(p.speed), c.width / 2, ...scale(.05), ...scale(.05));
 }
 
 function gameAnimationFrame(_,elapsedTime){
