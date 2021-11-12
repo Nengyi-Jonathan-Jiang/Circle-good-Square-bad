@@ -25,37 +25,43 @@ var circles = [];
  *     create: (()=>NPO),
  *     color: String,
  *     initial_num: number,
- *     spawnChance: number
+ *     spawnChance: number,
+ *     min: number,
+ *     cap: number
  * }>}
  * */
 var obstacles = new Map([
     ["squares",{
         list:[],
-        create: _=>{return new NPO(NPO.drawSquareFunc, -1, 16, .002, .0001)},
-        color:"#F0F",
-        initial_num: 8,
-        spawnChance: .5,
+        create: _=>{return new NPO(NPO.drawSquareFunc, -2, 16, .002, .0001)},
+        color:"#F07",
+        spawnChance: .6,
+        min: 8,
+        cap: 24
     }],
     ["squares2",{
         list:[],
-        create: _=>{return new NPO(NPO.drawSquareFunc, -1, 16, .002, .0001)},
-        color:"#F07",
-        initial_num: 8,
-        spawnChance: .5,
+        create: _=>{return new NPO(NPO.drawSquareFunc, -4, 10, .02, .1)},
+        color:"#F0F",
+        spawnChance: .1,
+        min: 0,
+        cap: 3,
     }],
     ["circles",{
         list:[],
         create: _=>{return new NPO(NPO.drawCircleFunc,  2,  8, .002, .0001)},
         color:"#0FF",
-        initial_num: 4,
-        spawnChance: .2,
+        spawnChance: .3,
+        min: 2,
+        cap: 6,
     }],
     ["circles2",{
         list:[],
-        create: _=>{return new NPO(NPO.drawCircleFunc,  2,  8, .002, .0001)},
+        create: _=>{return new NPO(NPO.drawCircleFunc,  6,  5, .02, .1)},
         color:"#0F4",
-        initial_num: 4,
-        spawnChance: .2,
+        spawnChance: .1,
+        min: 0,
+        cap: 3,
     }],
 ])
 
@@ -73,7 +79,15 @@ window.onkeypress=_=>{console.log(lastPositions.length)}
 
 function update(elapsedTime){
     for(let t of obstacles.values()){
-        if(random() < t.spawnChance * elapsedTime) t.list.push(t.create());
+        let shouldSpawn = t.list.length < t.min && random() < elapsedTime
+            || t.list.length < t.cap && random() < t.spawnChance * elapsedTime;
+        if(shouldSpawn){
+            while(true){
+                t.list.unshift(t.create());
+                if(t.list[0].hardCollide(p.x, p.y, 1.5 * R + 25 * t.list[0].maxSpeed * R)) t.list.shift();
+                else break;
+            }
+        }
     }
 
     for(let o of [].concat(...[...obstacles.values()].map(i=>i.list))){
@@ -111,7 +125,7 @@ function draw(){
 (f=>f())(function reset(){
     score = 0;
     p.reset();
-    for(let t of obstacles.values()) t.list = new Array(t.initial_num).fill(null).map(_=>t.create());
+    for(let t of obstacles.values()) t.list = [];
 
     Canvas.createAnimation((_,elapsedTime)=>{
         if(update(elapsedTime)) return true;

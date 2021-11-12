@@ -15,6 +15,8 @@ class NPO{
         let angle = random() * 2 * PI, energy = random() * maxSpeed;
         this.vx = energy * sin(angle);
         this.vy = energy * cos(angle);
+
+        this.flicker = false;
     }
     /** @param {number} elapsedTime */
     update(elapsedTime){
@@ -31,12 +33,19 @@ class NPO{
         if(this.y < R)     this.y = R,     this.vy *= -1;
 
         let energy = sqrt(this.vx * this.vx + this.vy * this.vy);
+
         if(energy > this.maxSpeed) this.vx *= this.maxSpeed / energy, this.vy *= this.maxSpeed / energy;
+
+        this.flicker = (f=>f < this.t && f < this.maxT - this.t)(random());
     }
-    draw(r){this.drawFunc.call(this,r)}
+    draw(r){
+        if(this.flicker) this.drawFunc.call(this,r)
+    }
     collide(x,y){
-        if(Math.sqrt((this.x - x) * (this.x - x) + (this.y - y) * (this.y - y)) <= 2 * R)
-            return this.t = Number.POSITIVE_INFINITY, true;
+        return this.flicker && this.hardCollide(x,y) && (this.t = Number.POSITIVE_INFINITY, true);
+    }
+    hardCollide(x,y,r = 2*R){
+        return Math.sqrt((this.x - x) * (this.x - x) + (this.y - y) * (this.y - y)) <= r;
     }
     filter(){return this.t < this.maxT}
 
@@ -63,7 +72,7 @@ class PO{
     }
     reset(){
         this.x = 1; this.y = .5;
-        this.energy = 3;
+        this.energy = 10;
         this.angle = random() * 2 * PI;
 
         /**@type {[number,number][]}*/
@@ -80,9 +89,9 @@ class PO{
 
         if(this.energy <= 0) return true;
 
-        let ds = elapsedTime * PLAYER_MAX_SPEED * (1 - Math.pow(1.1 , -this.energy));
+        let ds = elapsedTime * PLAYER_MAX_SPEED * (1 - Math.pow(1.05 , -this.energy));
 
-        let maxTailLength = min(128, 10 * sqrt(this.energy));
+        let maxTailLength = min(128, 8 * sqrt(this.energy));
 
         for(;ds > 0; ds -= W){
             let _ds = min(ds,W);
