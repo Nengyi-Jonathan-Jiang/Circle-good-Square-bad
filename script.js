@@ -72,7 +72,7 @@ class NPO{
         if(this.homing){
             let dx = p.x - this.x, dy = p.y - this.y;
             let d = sqrt(dx * dx + dy * dy);
-            let a = max(1 - d * 2, 0) * elapsedTime / 10;
+            let a = max(1 - d * 2, 0) * elapsedTime / 5;
             this.vx += dx * a;
             this.vy += dy * a;
         }
@@ -91,7 +91,9 @@ class NPO{
         this.flicker = (f=>f < this.t && f < this.maxT - this.t)(random());
     }
     draw(r){
-        if(this.flicker) this.drawFunc.call(this,r)
+        c.ctx.globalAlpha = min(this.t, 1, this.maxT - this.t);
+        this.drawFunc.call(this,r);
+        c.ctx.globalAlpha = 1;
     }
     collide(x,y){
         return this.flicker && this.hardCollide(x,y) && (this.t = Number.POSITIVE_INFINITY, true);
@@ -229,38 +231,46 @@ var circles = [];
  * }>}
  * */
 var obstacles = new Map([
-    ["squares",{
-        list:[],
-        create: _=>{return new NPO(NPO.drawSquareFunc, -2, 16, .002, .0001)},
-        color:"#F3A",
-        spawnChance: .6,
-        min: 8,
-        cap: 12
-    }],
-    ["squares2",{
-        list:[],
-        create: _=>{return new NPO(NPO.drawSquareFunc, -4, 10, .02, .1)},
-        color:"#F0F",
-        spawnChance: .1,
-        min: 0,
-        cap: 2,
-    }],
+    // ["squares",{
+    //     list:[],
+    //     create: _=>{return new NPO(NPO.drawSquareFunc, -2, 16, .002, .0001)},
+    //     color:"#F3A",
+    //     spawnChance: .6,
+    //     min: 8,
+    //     cap: 12
+    // }],
+    // ["squares2",{
+    //     list:[],
+    //     create: _=>{return new NPO(NPO.drawSquareFunc, -4, 10, .02, .1)},
+    //     color:"#F0F",
+    //     spawnChance: .1,
+    //     min: 0,
+    //     cap: 2,
+    // }],
     ["squares3",{
         list:[],
-        create: _=>{return new NPO(NPO.drawTriFunc, -1, 8, .01,  .05, true)},
+        create: _=>{return new NPO(NPO.drawTriFunc, -.1, 8, .01,  .05, true)},
         color:"#F07",
-        spawnChance: .1,
+        spawnChance: 1,
         min: 0,
         cap: 6,
     }],
-    ["circles",{
+    ["circles0",{
         list:[],
-        create: _=>{return new NPO(NPO.drawCircleFunc,  1,  8, .002, .0001)},
-        color:"#0FF",
-        spawnChance: .3,
+        create: _=>{return new NPO(NPO.drawCircleFunc,  .5,  8, .002, .0001)},
+        color:"#FFF",
+        spawnChance: 1,
         min: 2,
         cap: 4,
     }],
+    // ["circles",{
+    //     list:[],
+    //     create: _=>{return new NPO(NPO.drawCircleFunc,  1,  8, .002, .0001)},
+    //     color:"#0FF",
+    //     spawnChance: .3,
+    //     min: 2,
+    //     cap: 4,
+    // }],
     // ["circles2",{
     //     list:[],
     //     create: _=>{return new NPO(NPO.drawCircleFunc,  3,  5, .02, .1)},

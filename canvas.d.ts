@@ -1,7 +1,7 @@
 declare class Canvas {
     parent: HTMLElement | undefined;
     canvas: HTMLCanvasElement;
-    private ctx;
+    public ctx : CanvasRenderingContext2D;
     private w;
     private h;
     private textOptions;
