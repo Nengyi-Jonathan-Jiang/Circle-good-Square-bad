@@ -47,6 +47,14 @@ var obstacles = new Map([
         min: 0,
         cap: 3,
     }],
+    ["squares3",{
+        list:[],
+        create: _=>{return new NPO(NPO.drawSquareFunc, -3, 8, .005,  .1, true)},
+        color:"#F66",
+        spawnChance: .2,
+        min: 0,
+        cap: 6,
+    }],
     ["circles",{
         list:[],
         create: _=>{return new NPO(NPO.drawCircleFunc,  2,  8, .002, .0001)},
@@ -99,7 +107,7 @@ function update(elapsedTime){
 
     if(p.update(elapsedTime)) return true;
 
-    score += p.energy * elapsedTime;
+    score += p.energy * elapsedTime * 0.1;
 }
 
 function draw(){

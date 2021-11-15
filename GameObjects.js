@@ -1,7 +1,7 @@
 
 class NPO{
     /** @param {(r:number)=>any} drawFunc @param {number} boost @param {number} maxT @param {number} maxSpeed @param {number} jitter */
-    constructor(drawFunc, boost, maxT, maxSpeed = .1, jitter = .01){
+    constructor(drawFunc, boost, maxT, maxSpeed = .1, jitter = .01, homing = false){
         this.drawFunc = drawFunc;
         this.boost = boost;
         this.maxT = maxT;
@@ -17,13 +17,22 @@ class NPO{
         this.vy = energy * cos(angle);
 
         this.flicker = false;
+        this.homing = homing;
     }
     /** @param {number} elapsedTime */
     update(elapsedTime){
         this.t += elapsedTime;
+        if(this.homing){
+            this.vx += (random() - .5) * this.jitter * elapsedTime;
+            this.vy += (random() - .5) * this.jitter * elapsedTime;
+            this.vx += elapsedTime * (p.x - this.x) * .1;
+            this.vy += elapsedTime * (p.y - this.y) * .1;
+        }
+        
+        let speed = sqrt(this.vx * this.vx + this.vy * this.vy);
 
-        this.vx += (random() - .5) * this.jitter * elapsedTime;
-        this.vy += (random() - .5) * this.jitter * elapsedTime;
+        if(speed > this.maxSpeed) this.vx *= this.maxSpeed / speed, this.vy *= this.maxSpeed / speed;
+
         this.x += this.vx;
         this.y += this.vy;
 
@@ -32,11 +41,7 @@ class NPO{
         if(this.y + R > 1) this.y = 1 - R, this.vy *= -1;
         if(this.y < R)     this.y = R,     this.vy *= -1;
 
-        let energy = sqrt(this.vx * this.vx + this.vy * this.vy);
-
-        if(energy > this.maxSpeed) this.vx *= this.maxSpeed / energy, this.vy *= this.maxSpeed / energy;
-
-        this.flicker = (f=>f < this.t && f < this.maxT - this.t)(random());
+        this.flicker = this.homing || (f=>f < this.t && f < this.maxT - this.t)(random());
     }
     draw(r){
         if(this.flicker) this.drawFunc.call(this,r)
