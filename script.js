@@ -1,41 +1,46 @@
-const {sin, cos, pow, atan2, sqrt, floor, ceil, min, max, random, PI} = Math;const TAU = PI * 2;
+const {sin, cos, pow, atan2, sqrt, floor, ceil, min, max, random, PI} = Math; const TAU = PI * 2;
 
-class NPOClass{
+/** @abstract */
+class NPOBaseClass{
 	/**
-	 * @param {(elapsedTime:number,player:PO)=>void} spawnFunc
-	 * @param {(elapsedTime:number,player:PO)=>void} updateFunc
-	 * @param {(elapsedTime:number)=>void} drawFunc
-	 * @param {(target: NPO|PO)=>void} onCollideFunc
+	 * @param {(self:NPOBaseClass,elapsedTime:number,player:PO)=>void} spawnFunc
+	 * @param {(self:NPOBaseClass,elapsedTime:number,player:PO)=>void} updateFunc
+	 * @param {(self:NPOBaseClass,elapsedTime:number)=>void} drawFunc
+	 * @param {(self:NPOBaseClass,target: NPO|PO)=>void} onCollideFunc
 	 * @param {number} radius
 	 * @param {String} color
 	 */
 	constructor(spawnFunc, updateFunc, drawFunc, onCollideFunc, radius, color){
 		this.spawnFunc = spawnFunc;
+        this.updateFunc = updateFunc;
+        this.drawFunc = drawFunc;
+        this.onCollideFunc = onCollideFunc;
 		this.radius = radius;
-		this.onCollideFunc = onCollideFunc;
 		this.color = color;
 		/** @type {NPO[]} */
 		this.list = [];
 	}
 
 	spawn(elapsedTime, player){
-		return this.spawnFunc.call(this,elapsedTime,player);
+		this.spawnFunc(this,elapsedTime,player);
 	}
+    update(elapsedTime, player){
+        
+    }
 
 	static basicSpawn(spawnChance,min,cap){
-		return function(elapsedTime,player){
+		return function(elapsedTime, player){
 			let shouldSpawn = this.list.length < min && random() < elapsedTime
 				|| this.list.length < cap && random() < spawnChance * elapsedTime;
 			if(shouldSpawn){
 				while(true){
 					t.list.unshift(t.create());
 					if(t.list[0].hardCollide(
-						p.x, p.y,
+						player.x, player.y,
 					1.5 * R + 25 * t.list[0].maxSpeed * R)) t.list.shift();
 					else break;
 				}
 			}
-
 		}
 	}
 }
@@ -104,7 +109,7 @@ class NPO{
     filter(){return this.t < this.maxT}
 
     static drawSquareFunc(r){
-        c.polygon(coord(this.x, this.y),[
+        c.drawPolygon(coord(this.x, this.y),[
             [ sin(this.t), cos(this.t)],
             [ cos(this.t),-sin(this.t)],
             [-sin(this.t),-cos(this.t)],
@@ -113,14 +118,14 @@ class NPO{
     }
     static drawTriFunc(r){
         let a = atan2(this.vy,this.vx);
-        c.polygon(coord(this.x, this.y),[
+        c.drawPolygon(coord(this.x, this.y),[
             [sqrt(.5) * cos(a),  sqrt(.5) * sin(a) ],
             [-cos(a + TAU * 1/8),-sin(a + TAU * 1/8)],
             [-cos(a - TAU * 1/8),-sin(a - TAU * 1/8)],
         ].map(i=>coord(...i.map(j=>j*r))))
     }
     static drawCircleFunc(r){
-        c.circle(...coord(this.x,this.y),...scale(r));
+        c.drawCircle(...coord(this.x,this.y),...scale(r));
     }
 }
 
@@ -171,7 +176,7 @@ class PO{
     draw(){
         for(let i = 0; i < 8; i++){
             c.setDrawColor("#FD0" + "FC864321".charAt(i));
-            c.circle(...coord(this.x, this.y), scale(R + W * i)[0]);
+            c.drawCircle(...coord(this.x, this.y), scale(R + W * i)[0]);
         }
     
         c.setDrawColor("#FD01");
@@ -182,7 +187,7 @@ class PO{
                 let length = sqrt((prev[0] - next[0]) * (prev[0] - next[0]) + (prev[1] - next[1]) * (prev[1] - next[1]));
                 let _length = 1 / length;
                 for(let j = 0; j < length; j += W){
-                    c.circle(...coord(
+                    c.drawCircle(...coord(
                         prev[0] + (next[0] - prev[0]) * j * _length,
                         prev[1] + (next[1] - prev[1]) * j * _length,
                     ), scale(R)[0]);

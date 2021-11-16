@@ -1,4 +1,8 @@
-class Canvas {
+declare class Canvas {
+    public parent: HTMLElement | undefined;
+    public canvas: HTMLCanvasElement;
+    public ctx :   CanvasRenderingContext2D;
+
     /**
      * @param width
      * Width of canvas in pixels. Defaults to window width.
@@ -9,38 +13,13 @@ class Canvas {
      * @param transparent
      * If true (default),the created canvas will be able to draw transparent/translucent colors or images.
      */
-    constructor(width, height, parent, transparent = true) {
-        this.canvas = document.createElement('canvas');
-        this.w = this.canvas.width = width || window.innerWidth;
-        this.h = this.canvas.height = height || window.innerHeight;
-        if (parent && parent.appendChild)
-            parent.appendChild(this.canvas);
-        this.ctx = this.canvas.getContext('2d', {
-            alpha: transparent
-        });
-        this.ctx.textAlign = "center";
-        this.parent = parent;
-        this.textOptions = {
-            "font-style": "normal",
-            "font-variant": "normal",
-            "font-weight": "normal",
-            "font-size": "12em",
-            "line-height": "1",
-            "font-family": "system-ui"
-        };
-    }
-    set width(width) {
-        this.resize(width, this.h);
-    }
-    get width() {
-        return this.w;
-    }
-    set height(height) {
-        this.resize(this.w, height);
-    }
-    get height() {
-        return this.h;
-    }
+    constructor(width:number, height:number, parent?:HTMLElement|null, transparent:boolean = true);
+
+    set width(width:number);
+    get width():number;
+    set height(height:number);
+    get height():number;
+
     /**
      * Resizes the canvas to the provided dimensions,or the size provided by the CSS attributes.
      * @param width
@@ -48,83 +27,59 @@ class Canvas {
      * @param height
      * Height in pixels. If not truthy,will be the window height.
      */
-    resize(width, height) {
-        this.canvas.width = this.w = width || this.canvas.clientWidth;
-        this.canvas.height = this.h = height || this.canvas.clientHeight;
-    }
+    resize(width:number, height:number):void;
+
     /**
      * Resizes the canvas to the dimensions of the parent element (Will probably throw error if the parent provided in the constructor was not a HTMLElement)
      */
-    resizeToParent() {
-        if (!this.parent)
-            return;
-        this.resize(this.parent.clientWidth, this.parent.clientHeight);
-    }
+    resizeToParent():void;
+
     /**
      * resizes the canvas to the dimensions of the window
      */
-    resizeToWindow() {
-        this.resize(window.innerWidth, window.innerHeight);
-    }
+    resizeToWindow():void;
     /**
      * Sets the stroke and fill color of subsequent operations
      * @param color
      * Hex value of the color (like #d4c00b)
      */
-    setDrawColor(color) {
-        this.ctx.strokeStyle = this.ctx.fillStyle = color;
-    }
+    setDrawColor(color:string):void;
     /**
      * Sets the stroke color of subsequent operations
      * @param color
      * Hex value of the color (like #d4c00b)
      */
-    setStrokeColor(color) {
-        this.ctx.strokeStyle = color;
-    }
+    setStrokeColor(color:string):void;
     /**
      * Sets the fill color of subsequent operations
-     * @param {string} color
+     * @param color
      * Hex value of the color (like #d4c00b)
      */
-    setFillColor(color) {
-        this.ctx.fillStyle = color;
-    }
+    setFillColor(color:string):void
     /**
      * Sets the line cap of subsequent operations
-     * @param {"butt"|"square"|"round"} 
      */
-    setLineCap(cap){
-        this.ctx.lineCap = cap;
-    }
+    setLineCap(cap:"butt"|"square"|"round"):void;
     /**
      * Sets the stroke width of subsequent operations
-     * @param {number} width
+     * @param width
      * Stroke width in pixels
      */
-    setStrokeWidth(width) {
-        this.ctx.lineWidth = width;
-    }
+    setStrokeWidth(width:number):void;
     /**
      * Wrapper for ctx.beginPath.
      */
-    beginPath() {
-        this.ctx.beginPath();
-    }
+    beginPath():void
     /**
      * Wrapper for ctx.moveTo.
      * Moves to (x,y). This starts a new line/fill
      */
-    moveTo(x, y) {
-        this.ctx.moveTo(x, y);
-    }
+    moveTo(x:number, y:number):void;
     /**
      * Wrapper for ctx.lineTo
      * Makes a line to (x,y)
      */
-    lineTo(x, y) {
-        this.ctx.lineTo(x, y);
-    }
+    lineTo(x:number, y:number):void;
     /**
      * Wrapper for ctx.arc
      * Draws an arc centered at (x,y) from a1 to a2 full turns clockwise with radius
