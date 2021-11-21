@@ -236,54 +236,46 @@ var circles = [];
  * }>}
  * */
 var obstacles = new Map([
-    // ["squares",{
-    //     list:[],
-    //     create: _=>{return new NPO(NPO.drawSquareFunc, -2, 16, .002, .0001)},
-    //     color:"#F3A",
-    //     spawnChance: .6,
-    //     min: 8,
-    //     cap: 12
-    // }],
-    // ["squares2",{
-    //     list:[],
-    //     create: _=>{return new NPO(NPO.drawSquareFunc, -4, 10, .02, .1)},
-    //     color:"#F0F",
-    //     spawnChance: .1,
-    //     min: 0,
-    //     cap: 2,
-    // }],
+    ["squares",{
+        list:[],
+        create: _=>{return new NPO(NPO.drawSquareFunc, -2, 16, .002, .0001)},
+        color:"#F3A",
+        spawnChance: .6,
+        min: 8,
+        cap: 12
+    }],
+    ["squares2",{
+        list:[],
+        create: _=>{return new NPO(NPO.drawSquareFunc, -4, 10, .02, .1)},
+        color:"#F0F",
+        spawnChance: .1,
+        min: 0,
+        cap: 2,
+    }],
     ["squares3",{
         list:[],
-        create: _=>{return new NPO(NPO.drawTriFunc, -.1, 8, .01,  .05, true)},
+        create: _=>{return new NPO(NPO.drawTriFunc, -1,  8, .01,  .05, true)},
         color:"#F07",
         spawnChance: 1,
         min: 0,
         cap: 6,
     }],
-    ["circles0",{
+    ["circles",{
         list:[],
-        create: _=>{return new NPO(NPO.drawCircleFunc,  .5,  8, .002, .0001)},
-        color:"#FFF",
-        spawnChance: 1,
+        create: _=>{return new NPO(NPO.drawCircleFunc,  1,  8, .002, .0001)},
+        color:"#0FF",
+        spawnChance: .3,
         min: 2,
         cap: 4,
     }],
-    // ["circles",{
-    //     list:[],
-    //     create: _=>{return new NPO(NPO.drawCircleFunc,  1,  8, .002, .0001)},
-    //     color:"#0FF",
-    //     spawnChance: .3,
-    //     min: 2,
-    //     cap: 4,
-    // }],
-    // ["circles2",{
-    //     list:[],
-    //     create: _=>{return new NPO(NPO.drawCircleFunc,  3,  5, .02, .1)},
-    //     color:"#0F4",
-    //     spawnChance: .1,
-    //     min: 0,
-    //     cap: 2,
-    // }],
+    ["circles2",{
+        list:[],
+        create: _=>{return new NPO(NPO.drawCircleFunc,  3,  5, .02, .1)},
+        color:"#0F4",
+        spawnChance: .1,
+        min: 0,
+        cap: 2,
+    }],
 ])
 
 var score = 0;
