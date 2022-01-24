@@ -198,7 +198,7 @@ class PO{
 }
 
 
-
+/**@type {{canvas:HTMLCanvasElement}} */
 let c = new Canvas(0,0,container);
 c.ctx.lineCap = "square";
 c.setFont("monospace");
@@ -208,6 +208,10 @@ window.onresize = (f=>(f(),f))(_=>{
     document.body.style.setProperty("--H",window.innerheight);
     c.resize();
 });
+
+c.canvas.addEventListener("dblclick",_=>{
+	document.body.requestFullscreen();
+})
 
 const R = .025,
       W = .003125,
