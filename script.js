@@ -238,7 +238,7 @@ var obstacles = new Map([
     }],
     ["squares2",{
         list:[],
-        create: _=>{return new NPO(NPO.circleFunc, -4, 10, .02, .1)},
+        create: _=>{return new NPO(NPO.drawSquareFunc, -4, 10, .02, .1)},
         color:"#F0F",
         spawnChance: .1,
         min: 0,
