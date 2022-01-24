@@ -114,7 +114,7 @@ class NPO{
             [ cos(this.t),-sin(this.t)],
             [-sin(this.t),-cos(this.t)],
             [-cos(this.t), sin(this.t)],
-        ].map(i=>coord(...i.map(j=>j*r))))
+        ].map(i=>scale(...i.map(j=>j*r))))
     }
     static drawTriFunc(r){
         let a = atan2(this.vy,this.vx);
@@ -122,9 +122,9 @@ class NPO{
             [sqrt(.5) * cos(a),  sqrt(.5) * sin(a) ],
             [-cos(a + TAU * 1/8),-sin(a + TAU * 1/8)],
             [-cos(a - TAU * 1/8),-sin(a - TAU * 1/8)],
-        ].map(i=>coord(...i.map(j=>j*r))))
+        ].map(i=>scale(...i.map(j=>j*r))))
     }
-    static drawCircleFunc(r){
+    static circleFunc(r){
         c.drawCircle(...coord(this.x,this.y),...scale(r));
     }
 }
@@ -202,8 +202,7 @@ class PO{
 let c = new Canvas(0,0,container);
 c.ctx.lineCap = "square";
 c.setFont("monospace");
-c.canvas.addEventListener("contextmenu",e=>e.preventDefault());
-
+// c.canvas.addEventListener("contextmenu",e=>e.preventDefault());
 window.onresize = (f=>(f(),f))(_=>{
     document.body.style.setProperty("--W",window.innerWidth);
     document.body.style.setProperty("--H",window.innerheight);
@@ -216,13 +215,6 @@ const R = .025,
       PLAYER_MAX_SPEED = 2;
 
 var p = new PO();
-
-/**@type {NPO[]}*/
-var squares = [];
-/**@type {NPO[]}*/
-var squares2 = [];
-/**@type {NPO[]}*/
-var circles = [];
 
 /**
  * @type {Map<string,{
@@ -246,7 +238,7 @@ var obstacles = new Map([
     }],
     ["squares2",{
         list:[],
-        create: _=>{return new NPO(NPO.drawSquareFunc, -4, 10, .02, .1)},
+        create: _=>{return new NPO(NPO.circleFunc, -4, 10, .02, .1)},
         color:"#F0F",
         spawnChance: .1,
         min: 0,
@@ -262,7 +254,7 @@ var obstacles = new Map([
     }],
     ["circles",{
         list:[],
-        create: _=>{return new NPO(NPO.drawCircleFunc,  1,  8, .002, .0001)},
+        create: _=>{return new NPO(NPO.circleFunc,  1,  8, .002, .0001)},
         color:"#0FF",
         spawnChance: .3,
         min: 2,
@@ -270,7 +262,7 @@ var obstacles = new Map([
     }],
     ["circles2",{
         list:[],
-        create: _=>{return new NPO(NPO.drawCircleFunc,  3,  5, .02, .1)},
+        create: _=>{return new NPO(NPO.circleFunc,  3,  5, .02, .1)},
         color:"#0F4",
         spawnChance: .1,
         min: 0,
