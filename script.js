@@ -114,7 +114,7 @@ class NPO{
             [ cos(this.t),-sin(this.t)],
             [-sin(this.t),-cos(this.t)],
             [-cos(this.t), sin(this.t)],
-        ].map(i=>scale(...i.map(j=>j*r))))
+        ].map(i=>scaleAndRot(...i.map(j=>j*r))))
     }
     static drawTriFunc(r){
         let a = atan2(this.vy,this.vx);
@@ -122,7 +122,7 @@ class NPO{
             [sqrt(.5) * cos(a),  sqrt(.5) * sin(a) ],
             [-cos(a + TAU * 1/8),-sin(a + TAU * 1/8)],
             [-cos(a - TAU * 1/8),-sin(a - TAU * 1/8)],
-        ].map(i=>scale(...i.map(j=>j*r))))
+        ].map(i=>scaleAndRot(...i.map(j=>j*r))))
     }
     static circleFunc(r){
         c.drawCircle(...coord(this.x,this.y),...scale(r));
@@ -274,6 +274,7 @@ var score = 0;
 
 function coord(x, y){return c.width > c.height ? scale(x, y) : scale(1 - y, x)}
 function scale(...a){return a.map(i=>i* min(c.width,c.height))}
+function scaleAndRot(x,y){return c.width > c.height ? scale(x, y) : scale(-y, x)}
 
 createDragDetector(c.canvas,(oldX,oldY,newX,newY)=>{
     p.turn(- atan2(newY - oldY, newX - oldX) / PI / 2 - (c.width > c.height) * .25);
