@@ -286,43 +286,33 @@ createDragDetector(c.canvas,(oldX,oldY,newX,newY)=>{
 })
 var clicked = createClickDetector(c.canvas);
 
+const minSpawnDistance = 0.5;
+
 function update(elapsedTime){
     for(let t of obstacles.values()){
         let shouldSpawn = t.list.length < t.min && random() < elapsedTime
             || t.list.length < t.cap && random() < t.spawnChance * elapsedTime;
         if(shouldSpawn){
-			// let angle = 0;
-			// let spawnRange = -1;
-			// let minSpawnDistance = 0;
-			// for(let i = 0; i < 100 && spawnRange < 0; i++){
+			let angle = 0;
+			let spawnRange = -1;
+			while(spawnRange < 0){
 
-			// 	angle = random() * TAU;
-
-			// 	let distanceToEdge = min(
-			// 		((p.x * cos(angle) <= 0 ? 0 : 2) - p.x) / cos(angle),
-			// 		((p.y * sin(angle) <= 0 ? 0 : 1) - p.y) / sin(angle),
-			// 	);
-			// 	spawnRange = distanceToEdge - minSpawnDistance;
-			// 	if(spawnRange < 0) console.log(angle, distanceToEdge,spawnRange)
-			// }
-
-			// let distance = random() * spawnRange + minSpawnDistance;
-			// let pos = [p.x + cos(angle) * distance, p.x + sin(angle) * distance];
-
-			// t.list.unshift(t.create(...pos));
-
-            while(true){
-				let angle = random() * TAU;
+				angle = random() * TAU;
 
 				let distanceToEdge = min(
-					((p.x * cos(angle) <= 0 ? 2 : 0) - p.x) / cos(angle),
-					((p.y * sin(angle) <= 0 ? 1 : 0) - p.y) / sin(angle),
+					((p.x * cos(angle) <= 0 ? 0 : 2) - p.x) / cos(angle),
+					((p.y * sin(angle) <= 0 ? 0 : 1) - p.y) / sin(angle),
 				);
+				spawnRange = distanceToEdge - minSpawnDistance;
+			}
 
-                t.list.unshift(t.create());
-                if(t.list[0].hardCollide(p.x, p.y, 1.5 * R + 25 * t.list[0].maxSpeed * R)) t.list.shift();
-                else break;
-            }
+			let distance = random() * spawnRange + minSpawnDistance;
+
+			function trunc(x){return ~~(x * 100) / 100}
+
+			let pos = [p.x + cos(angle) * distance, p.y + sin(angle) * distance];
+
+			t.list.unshift(t.create(...pos));
         }
     }
 
@@ -340,7 +330,9 @@ function update(elapsedTime){
 
 function draw(){
     c.clear("#014");
+	
     c.setStrokeWidth(scale(W));
+
 	c.ctx.lineCap = "square";
 
 	for(let i = 0; i < 5; i++){
@@ -368,7 +360,7 @@ function draw(){
 (f=>f())(function reset(){
     score = 0;
     p.reset();
-	// p.energy = 100;
+	
     for(let t of obstacles.values()) t.list = [];
 
     Canvas.createAnimation((_,elapsedTime)=>{
@@ -377,9 +369,11 @@ function draw(){
     }).then(_=>{
     p.energy = 0;
     clicked.clicked();
-    Canvas.createAnimation(_=>{
+    Canvas.createAnimation(currTime=>{
         draw();
-        c.clear("#F006");
+
+		let redOpacity = sin(currTime * 4.0) + 1;
+        c.clear("#FF0000" + "65"[~~redOpacity] + "FEDCBA9876543210"[~~((redOpacity % 1) * 16)]);
         c.setDrawColor("#FFF")
         c.fillText("GAME OVER",c.w/2,c.h/2 - c.w * .04,c.w/20);
         c.fillText("FINAL SCORE: " + ceil(score), c.w/2,c.h/2,c.w/30);
