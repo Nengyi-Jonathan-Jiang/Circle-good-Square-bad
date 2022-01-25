@@ -149,12 +149,15 @@ class PO{
         this.angle = angle;
         this.turns.push([this.x, this.y, 0]);
     }
+	getSpeed(){
+		return PLAYER_MAX_SPEED * (1 - Math.pow(1.05 , -this.energy));
+	}
     update(elapsedTime){
         this.energy -= .1 * elapsedTime;
 
         if(this.energy <= 0) return true;
 
-        let ds = elapsedTime * PLAYER_MAX_SPEED * (1 - Math.pow(1.05 , -this.energy));
+        let ds = elapsedTime * this.getSpeed();
 
         let maxTailLength = min(128, 8 * sqrt(this.energy));
 
@@ -267,7 +270,7 @@ var obstacles = new Map([
     }],
     ["circles2",{
         list:[],
-        create: (x,y)=>{return new NPO(NPO.circleFunc,  3,  5, .02, .1,false,x,y)},
+        create: (x,y)=>{return new NPO(NPO.circleFunc,  3,  5, max(p.getSpeed() / 25, .01), .1,false,x,y)},
         color:"#0F4",
         spawnChance: .1,
         min: 0,
@@ -367,17 +370,20 @@ function draw(){
         if(update(elapsedTime)) return true;
         draw();
     }).then(_=>{
-    p.energy = 0;
-    clicked.clicked();
-    Canvas.createAnimation(currTime=>{
-        draw();
+		p.energy = 0;
+		clicked.clicked();
+		Canvas.createAnimation(currTime=>{
+			draw();
 
-		let redOpacity = sin(currTime * 4.0) + 1;
-        c.clear("#FF0000" + "65"[~~redOpacity] + "FEDCBA9876543210"[~~((redOpacity % 1) * 16)]);
-        c.setDrawColor("#FFF")
-        c.fillText("GAME OVER",c.w/2,c.h/2 - c.w * .04,c.w/20);
-        c.fillText("FINAL SCORE: " + ceil(score), c.w/2,c.h/2,c.w/30);
-        c.fillText("CLICK ANYWHERE TO PLAY AGAIN", c.w/2,c.h/2 + c.w * .04,c.w/36);
-        if(clicked.clicked()) return true;
-    }).then(reset)});
+			let fontScale = max(c.w, c.h);
+
+			let redOpacity = sin(currTime * 4.0) + 1;
+			c.clear("#FF0000" + "65"[~~redOpacity] + "FEDCBA9876543210"[(redOpacity * 16) & 15]);
+			c.setDrawColor("#FFF")
+			c.fillText("GAME OVER",c.w / 2, c.h/2 - fontScale * .04,fontScale/20);
+			c.fillText("FINAL SCORE: " + ceil(score), c.w/2,c.h/2,fontScale/30);
+			c.fillText("Click anywhere to play again", c.w/2,c.h/2 + fontScale * .04,fontScale/36);
+			if(clicked.clicked()) return true;
+    	}).then(reset)
+	});
 })
