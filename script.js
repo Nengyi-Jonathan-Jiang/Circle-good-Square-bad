@@ -47,7 +47,7 @@ class NPOBaseClass{
 
 class NPO{
     /** @param {(r:number)=>any} drawFunc @param {number} boost @param {number} maxT @param {number} maxSpeed @param {number} jitter */
-    constructor(drawFunc, boost, maxT, maxSpeed = .1, jitter = .01, homing = false){
+    constructor(drawFunc, boost, maxT, maxSpeed = .1, jitter = .01, homing = false, x,y){
         this.drawFunc = drawFunc;
         this.boost = boost;
         this.maxT = maxT;
@@ -55,8 +55,8 @@ class NPO{
         this.jitter = jitter;
 
         this.t = 0;
-        this.x = random() * 2;
-        this.y = random();
+        this.x = x === undefined ? random() * 2 : x;
+        this.y = y === undefined ? random() : y;
         
         let angle = random() * TAU, energy = random() * maxSpeed;
         this.vx = energy * sin(angle);
@@ -202,6 +202,7 @@ class PO{
 let c = new Canvas(0,0,container);
 c.ctx.lineCap = "square";
 c.setFont("monospace");
+c.setFont('Orbitron');
 // c.canvas.addEventListener("contextmenu",e=>e.preventDefault());
 window.onresize = (f=>(f(),f))(_=>{
     document.body.style.setProperty("--W",window.innerWidth);
@@ -234,7 +235,7 @@ var p = new PO();
 var obstacles = new Map([
     ["squares",{
         list:[],
-        create: _=>{return new NPO(NPO.drawSquareFunc, -2, 16, .002, .0001)},
+        create: (x,y)=>{return new NPO(NPO.drawSquareFunc, -2, 16, .002, .0001,false,x,y)},
         color:"#F3A",
         spawnChance: .6,
         min: 8,
@@ -242,7 +243,7 @@ var obstacles = new Map([
     }],
     ["squares2",{
         list:[],
-        create: _=>{return new NPO(NPO.drawSquareFunc, -4, 10, .02, .1)},
+        create: (x,y)=>{return new NPO(NPO.drawSquareFunc, -4, 10, .02, .1,false,x,y)},
         color:"#F0F",
         spawnChance: .1,
         min: 0,
@@ -250,7 +251,7 @@ var obstacles = new Map([
     }],
     ["squares3",{
         list:[],
-        create: _=>{return new NPO(NPO.drawTriFunc, -1,  8, .01,  .05, true)},
+        create: (x,y)=>{return new NPO(NPO.drawTriFunc, -1,  8, .01,  .05, true,x,y)},
         color:"#F07",
         spawnChance: 1,
         min: 0,
@@ -258,7 +259,7 @@ var obstacles = new Map([
     }],
     ["circles",{
         list:[],
-        create: _=>{return new NPO(NPO.circleFunc,  1,  8, .002, .0001)},
+        create: (x,y)=>{return new NPO(NPO.circleFunc,  1,  8, .002, .0001,false,x,y)},
         color:"#0FF",
         spawnChance: .3,
         min: 2,
@@ -266,7 +267,7 @@ var obstacles = new Map([
     }],
     ["circles2",{
         list:[],
-        create: _=>{return new NPO(NPO.circleFunc,  3,  5, .02, .1)},
+        create: (x,y)=>{return new NPO(NPO.circleFunc,  3,  5, .02, .1,false,x,y)},
         color:"#0F4",
         spawnChance: .1,
         min: 0,
@@ -290,7 +291,34 @@ function update(elapsedTime){
         let shouldSpawn = t.list.length < t.min && random() < elapsedTime
             || t.list.length < t.cap && random() < t.spawnChance * elapsedTime;
         if(shouldSpawn){
+			// let angle = 0;
+			// let spawnRange = -1;
+			// let minSpawnDistance = 0;
+			// for(let i = 0; i < 100 && spawnRange < 0; i++){
+
+			// 	angle = random() * TAU;
+
+			// 	let distanceToEdge = min(
+			// 		((p.x * cos(angle) <= 0 ? 0 : 2) - p.x) / cos(angle),
+			// 		((p.y * sin(angle) <= 0 ? 0 : 1) - p.y) / sin(angle),
+			// 	);
+			// 	spawnRange = distanceToEdge - minSpawnDistance;
+			// 	if(spawnRange < 0) console.log(angle, distanceToEdge,spawnRange)
+			// }
+
+			// let distance = random() * spawnRange + minSpawnDistance;
+			// let pos = [p.x + cos(angle) * distance, p.x + sin(angle) * distance];
+
+			// t.list.unshift(t.create(...pos));
+
             while(true){
+				let angle = random() * TAU;
+
+				let distanceToEdge = min(
+					((p.x * cos(angle) <= 0 ? 2 : 0) - p.x) / cos(angle),
+					((p.y * sin(angle) <= 0 ? 1 : 0) - p.y) / sin(angle),
+				);
+
                 t.list.unshift(t.create());
                 if(t.list[0].hardCollide(p.x, p.y, 1.5 * R + 25 * t.list[0].maxSpeed * R)) t.list.shift();
                 else break;
@@ -313,10 +341,15 @@ function update(elapsedTime){
 function draw(){
     c.clear("#014");
     c.setStrokeWidth(scale(W));
-    c.setDrawColor("#FFFF");
-    c.drawRect(W / 2, W / 2, 2 - W / 2, 1 - W / 2);
+	c.ctx.lineCap = "square";
 
-    c.ctx.lineCap = "square";
+	for(let i = 0; i < 5; i++){
+        let opacity = "F8421".charAt(i)
+
+		c.setDrawColor("#FFF" + opacity);
+		c.drawRect(...coord(W * (i + 0.5), W * (i + 0.5)), ...coord(2 - W * (i + 0.5), 1 - W * (i + 0.5)));
+    }
+
     for(let i = 0; i < 3; i++){
         let opacity = "F84".charAt(i)
         for(let t of obstacles.values()){
@@ -328,13 +361,14 @@ function draw(){
     p.draw();
 
     c.setDrawColor("#FFF");
-    c.fillText("ENERGY: " + ceil(p.energy) + "  |  SCORE: " + ceil(score), c.width / 2, ...scale(.05), ...scale(.05));
+    c.fillText("ENERGY: " + ceil(p.energy) + "  |  SCORE: " + ceil(score), c.width / 2, ...scale(.05 + 2 * W), ...scale(.05));
 }
 
 
 (f=>f())(function reset(){
     score = 0;
     p.reset();
+	// p.energy = 100;
     for(let t of obstacles.values()) t.list = [];
 
     Canvas.createAnimation((_,elapsedTime)=>{
@@ -347,9 +381,9 @@ function draw(){
         draw();
         c.clear("#F006");
         c.setDrawColor("#FFF")
-        c.fillText("GAME OVER",c.w/2,c.h/2 - c.w/20,c.w/20);
+        c.fillText("GAME OVER",c.w/2,c.h/2 - c.w * .04,c.w/20);
         c.fillText("FINAL SCORE: " + ceil(score), c.w/2,c.h/2,c.w/30);
-        c.fillText("CLICK ANYWHERE TO PLAY AGAIN", c.w/2,c.h/2 + c.w/25,c.w/30);
+        c.fillText("CLICK ANYWHERE TO PLAY AGAIN", c.w/2,c.h/2 + c.w * .04,c.w/36);
         if(clicked.clicked()) return true;
     }).then(reset)});
 })

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
 @media only screen and (orientation: landscape){
     div#container{
         --d: min(100vw,200vh);
@@ -24,4 +26,8 @@ div#container>canvas{
     top: 0; left: 0;
     width: var(--w); height: var(--h);
 	touch-action: none;
+}
+
+:root{
+	background-color:black;
 }
