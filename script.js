@@ -276,6 +276,14 @@ var obstacles = new Map([
         min: 0,
         cap: 2,
     }],
+	["gold",{
+        list:[],
+        create: (x,y)=>{return new NPO(function(r){NPO.circleFunc.call(this,r/2)},  0,  5, 0, 0,false,x,y)},
+        color:"#FF4",
+        spawnChance: .1,
+        min: 0,
+        cap: 1,
+    }],
 ])
 
 var score = 0;
