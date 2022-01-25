@@ -313,6 +313,8 @@ function update(elapsedTime){
 function draw(){
     c.clear("#014");
     c.setStrokeWidth(scale(W));
+    c.setDrawColor("#FFFF");
+    c.drawRect(W / 2, W / 2, 2 - W / 2, 1 - W / 2);
 
     c.ctx.lineCap = "square";
     for(let i = 0; i < 3; i++){
