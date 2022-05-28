@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Untitled Game</title>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+		
+		<meta property="og:title" content="Untitled Game" />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content="https://nengyi-jonathan-jiang.github.io/Untitled-Game" />
+		<meta property="og:image" content="https://untitled-game.jonnyboyboy.repl.co/Game-Screenshot.png" />
+		<meta property="og:description" content="A simple game. You are the gold circle. Swipe to change direction. Eating circles will give you speed, and crashing into other shapes will make you lose speed.">
+		<meta property="og:site_name" content="NJJ Games">
+
+       <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+@media only screen and (orientation: landscape){
+    div#container{
+        --d: min(100vw,200vh);
+        --w: calc(var(--d) * 1.0);
+        --h: calc(var(--d) * 0.5);
+    }
+}
+@media only screen and (orientation: portrait){
+    div#container{
+        --d: min(200vw,100vh);
+        --w: calc(var(--d) * 0.5);
+        --h: calc(var(--d) * 1.0);
+    }
+}
+
+div#container{
+    position:absolute;
+    left: calc((100vw - var(--w)) * 0.5);
+    top:  calc((100vh - var(--h)) * 0.5);
+    width:var(--w); height:var(--h);
+}
+div#container>canvas{
+    position: absolute;
+    top: 0; left: 0;
+    width: var(--w); height: var(--h);
+	touch-action: none;
+}
+
+:root{
+	background-color:black;
+}</style>
+        <script>class Canvas {
+    /**
+     * @param width
+     * Width of canvas in pixels. Defaults to window width.
+     * @param height
+     * Height of canvas in pixels. Defaults to window height.
+     * @param parent
+     * If parent is an HTML element,(like div or body),the created HTMLCanvasElement will be appended to it.
+     * @param transparent
+     * If true (default),the created canvas will be able to draw transparent/translucent colors or images.
+     */
+    constructor(width, height, parent, transparent = true) {
+        this.canvas = document.createElement('canvas');
+        this.w = this.canvas.width = width || window.innerWidth;
+        this.h = this.canvas.height = height || window.innerHeight;
+        if (parent && parent.appendChild)
+            parent.appendChild(this.canvas);
+        this.ctx = this.canvas.getContext('2d', {
+            alpha: transparent
+        });
+        this.ctx.textAlign = "center";
+        this.parent = parent;
+        this.textOptions = {
+            "font-style": "normal",
+            "font-variant": "normal",
+            "font-weight": "normal",
+            "font-size": "12em",
+            "line-height": "1",
+            "font-family": "system-ui"
+        };
+    }
+    set width(width) {
+        this.resize(width, this.h);
+    }
+    get width() {
+        return this.w;
+    }
+    set height(height) {
+        this.resize(this.w, height);
+    }
+    get height() {
+        return this.h;
+    }
+    /**
+     * Resizes the canvas to the provided dimensions,or the size provided by the CSS attributes.
+     * @param width
+     * Width in pixels. If not truthy,will be the window width.
+     * @param height
+     * Height in pixels. If not truthy,will be the window height.
+     */
+    resize(width, height) {
+        this.canvas.width = this.w = width || this.canvas.clientWidth;
+        this.canvas.height = this.h = height || this.canvas.clientHeight;
+    }
+    /**
+     * Resizes the canvas to the dimensions of the parent element (Will probably throw error if the parent provided in the constructor was not a HTMLElement)
+     */
+    resizeToParent() {
+        if (!this.parent)
+            return;
+        this.resize(this.parent.clientWidth, this.parent.clientHeight);
+    }
+    /**
+     * resizes the canvas to the dimensions of the window
+     */
+    resizeToWindow() {
+        this.resize(window.innerWidth, window.innerHeight);
+    }
+    /**
+     * Sets the stroke and fill color of subsequent operations
+     * @param color
+     * Hex value of the color (like #d4c00b)
+     */
+    setDrawColor(color) {
+        this.ctx.strokeStyle = this.ctx.fillStyle = color;
+    }
+    /**
+     * Sets the stroke color of subsequent operations
+     * @param color
+     * Hex value of the color (like #d4c00b)
+     */
+    setStrokeColor(color) {
+        this.ctx.strokeStyle = color;
+    }
+    /**
+     * Sets the fill color of subsequent operations
+     * @param {string} color
+     * Hex value of the color (like #d4c00b)
+     */
+    setFillColor(color) {
+        this.ctx.fillStyle = color;
+    }
+    /**
+     * Sets the line cap of subsequent operations
+     * @param {"butt"|"square"|"round"} 
+     */
+    setLineCap(cap){
+        this.ctx.lineCap = cap;
+    }
+    /**
+     * Sets the stroke width of subsequent operations
+     * @param {number} width
+     * Stroke width in pixels
+     */
+    setStrokeWidth(width) {
+        this.ctx.lineWidth = width;
+    }
+    /**
+     * Wrapper for ctx.beginPath.
+     */
+    beginPath() {
+        this.ctx.beginPath();
+    }
+    /**
+     * Wrapper for ctx.moveTo.
+     * Moves to (x,y). This starts a new line/fill
+     */
+    moveTo(x, y) {
+        this.ctx.moveTo(x, y);
+    }
+    /**
+     * Wrapper for ctx.lineTo
+     * Makes a line to (x,y)
+     */
+    lineTo(x, y) {
+        this.ctx.lineTo(x, y);
+    }
+    /**
+     * Wrapper for ctx.arc
+     * Draws an arc centered at (x,y) from a1 to a2 full turns clockwise with radius
+     * r. If counterclockwise=true,the arc will be inverted (not mirrored)
+     */
+    arc(x, y, r, a1, a2, counterclockwise = false) {
+        this.ctx.arc(x, y, r, a1 * 2 * Math.PI, a2 * 2 * Math.PI, counterclockwise);
+    }
+    /**
+     * Wrapper for ctx.stroke
+     * Draws the path onto the canvas
+     */
+    stroke() {
+        this.ctx.stroke();
+    }
+    /**
+     * Wrapper for ctx.fill
+     * Fills in the area outlined in the path
+     */
+    fill(fillRule="evenodd") {
+        this.ctx.fill();
+    }
+    /**
+     * Wrapper for ctx.closePath
+     */
+    closePath() {
+        this.ctx.closePath();
+    }
+    /**
+     * Clears canvas. If color is provided,fill canvas with color
+     * @param color
+     * Hex value of the color (like #d4c00b). If not provided,the resulting canvas is transparent if transparency is enabled or white otherwise.
+     */
+    clear(color){
+        this.ctx.save();
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        if (color)
+            this.setFillColor(color), this.ctx.fillRect(0, 0, this.w, this.h);
+        else
+            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.ctx.restore();
+    }
+    /**
+     * Draws a line from x1 to y1.
+     */
+    drawLine(x1, y1, x2, y2) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1, y1);
+        this.ctx.lineTo(x2, y2);
+        this.ctx.stroke();
+        this.ctx.closePath();
+    }
+    /**
+     * Fills a rectancle with color. (x1,y1) is the top left corner and (x2,y2) is the bottom right corner.
+     */
+    fillRect(x1, y1, x2, y2) {
+        this.ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+    }
+    /**
+     * Draws a rectancle. (x1,y1) is the top left corner and (x2,y2) is the bottom right corner.
+     */
+    drawRect(x1, y1, x2, y2) {
+        this.ctx.beginPath();
+        this.ctx.rect(x1, y1, x2 - x1, y2 - y1);
+        this.ctx.stroke();
+        this.ctx.closePath();
+    }
+    /**
+     * Fills a square with top left corner at (x1,y1) and width
+     */
+    fillSquare(x, y, width) {
+        this.ctx.fillRect(x, y, width, width);
+    }
+    /**
+     * Draws a square with top left corner at (x,y) and width
+     */
+    drawSquare(x, y, width) {
+        this.ctx.beginPath();
+        this.ctx.rect(x, y, width, width);
+        this.ctx.stroke();
+        this.ctx.closePath();
+    }
+    /**
+     * Fills a circle with center (x,y) and radius r
+     */
+    fillCircle(x, y, r) {
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, r, 0, 2 * Math.PI);
+        this.ctx.fill();
+        this.ctx.closePath();
+    }
+    /**
+     * Draws a circle with center (x,y) and radius r
+     */
+    drawCircle(x, y, r) {
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, r - this.ctx.lineWidth / 2, 0, 2 * Math.PI);
+        this.ctx.stroke();
+        this.ctx.closePath();
+    }
+    /**
+     * Fills an arc centered at (x,y) from a1 to a2 full turns clockwise with radius
+     * r. If counterclockwise=true,the arc will be inverted (not mirrored)
+     */
+    fillArc(x, y, r, a1, a2, counterclockwise = false) {
+        this.beginPath();
+        this.moveTo(x, y);
+        this.ctx.arc(x, y, r, a1 * 2 * Math.PI, a2 * 2 * Math.PI, counterclockwise);
+        this.fill();
+        this.closePath();
+    }
+    /**
+     * Draws an arc centered at (x,y) from a1 to a2 full turns clockwise with radius
+     * r. If counterclockwise=true,the arc will be inverted (not mirrored)
+     */
+    drawArc(x, y, r, a1, a2, counterclockwise = false) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y);
+        this.ctx.arc(x, y, r, a1 * 2 * Math.PI, a2 * 2 * Math.PI, counterclockwise);
+        this.ctx.stroke();
+        this.ctx.closePath();
+    }
+    /**
+     * Fills an double arc centered at (x,y) from a1 to a2 full turns clockwise with radii
+     * r1 and r2. If counterclockwise=true,the arc will be inverted (not mirrored)
+     */
+    fillDoubleArc(x, y, r1, r2, a1, a2, counterclockwise = false) {
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, r1, a1 * 2 * Math.PI, a2 * 2 * Math.PI, counterclockwise);
+        this.ctx.arc(x, y, r2, a2 * 2 * Math.PI, a1 * 2 * Math.PI,!counterclockwise);
+        this.ctx.fill();
+        this.ctx.closePath();
+    }
+    /**
+     * Sets font style
+     */
+    setFont(family, italic, bold, line_height, small_caps) {
+        if (family !== undefined)
+            this.textOptions["font-family"] = family;
+        if (italic !== undefined)
+            this.textOptions["font-style"] = italic ? "italic" : "normal";
+        if (bold !== undefined)
+            this.textOptions["font-weight"] = bold ? "bold" : "normal";
+        if (line_height !== undefined)
+            this.textOptions["line-height"] = line_height.toString();
+        if (small_caps !== undefined)
+            this.textOptions["font-variant"] = small_caps ? "small_caps" : "normal";
+    }
+    /**
+     * Fill text with top left corner at (x,y)
+     * @param txt
+     * The text to display
+     * @param size
+     * The font size in pixels
+     * @param  font
+     * A string parsed like a CSS font property (like "italic bold 16px Times";)
+     */
+    fillText(txt, x, y, size) {
+        this.ctx.beginPath();
+        this.ctx.font = [this.textOptions["font-variant"], this.textOptions["font-weight"], size + "px", this.textOptions["font-family"]].join(" ");
+        this.ctx.textAlign = "center";
+        this.ctx.fillText(txt, x, y);
+        this.ctx.closePath();
+    }
+    /**
+     * Outline text with top left corner at (x,y)
+     * @param txt
+     * The text to display
+     * @param size
+     * The font size in pixels
+     * @param font
+     * A string parsed like a CSS font property (like "italic bold 16px Times";)
+     */
+    strokeText(txt, x, y, size) {
+        this.ctx.beginPath();
+        this.ctx.font = [this.textOptions["font-variant"], this.textOptions["font-weight"], size + "px", this.textOptions["font-family"]].join(" ");
+        this.ctx.textAlign = "center";
+        this.ctx.strokeText(txt, x, y);
+        this.ctx.closePath();
+    }
+    /**
+     * draws a polygon centered at center
+     * @param center
+     * center of polygon
+     * @param points
+     * verticies of polygon
+     */
+    drawPolygon(center, points) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(points[points.length - 1][0] + center[0], points[points.length - 1][1] + center[1]);
+        let t = this;
+        points.forEach(s => t.ctx.lineTo(s[0] + center[0], s[1] + center[1]));
+        this.ctx.stroke();
+        this.ctx.closePath();
+    }
+    /**
+     * fills a polygon centered at center
+     * @param center
+     * center of polygon
+     * @param points
+     * verticies of polygon
+     */
+    fillPolygon(center, points) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(points[points.length - 1][0] + center[0], points[points.length - 1][1] + center[1]);
+        let t = this;
+        points.forEach(s => t.ctx.lineTo(s[0] + center[0], s[1] + center[1]));
+        this.ctx.fill();
+        this.ctx.closePath();
+    }
+    /**
+     * Draws a squircle
+     * @param x
+     * x-coordinate of the squircle center
+     * @param y
+     * y-coordinate of the squircle center
+     * @param width
+     * width of squircle
+     * @param r
+     * radius of rounded corners
+     */
+    drawSquircle(x, y, width, r = 5) {
+        this.ctx.beginPath();
+        this.ctx.arc(x + width / 2 - r, y - width / 2 + r, r, 3 * Math.PI / 2, 0 * Math.PI / 2);
+        this.ctx.arc(x + width / 2 - r, y + width / 2 - r, r, 0 * Math.PI / 2, 1 * Math.PI / 2);
+        this.ctx.arc(x - width / 2 + r, y + width / 2 - r, r, 1 * Math.PI / 2, 2 * Math.PI / 2);
+        this.ctx.arc(x - width / 2 + r, y - width / 2 + r, r, 2 * Math.PI / 2, 3 * Math.PI / 2);
+        this.ctx.lineTo(x + width / 2 - r, y - width / 2);
+        this.ctx.stroke();
+        this.ctx.closePath();
+    }
+    /**
+     * Fills a squircle
+     * @param x
+     * x-coordinate of the squircle center
+     * @param y
+     * y-coordinate of the squircle center
+     * @param width
+     * width of squircle
+     * @param r
+     * radius of rounded corners
+     */
+    fillSquircle(x, y, width, r = 5) {
+        this.ctx.beginPath();
+        this.ctx.arc(x + width / 2 - r, y - width / 2 + r, r, 3 * Math.PI / 2, 0 * Math.PI / 2);
+        this.ctx.arc(x + width / 2 - r, y + width / 2 - r, r, 0 * Math.PI / 2, 1 * Math.PI / 2);
+        this.ctx.arc(x - width / 2 + r, y + width / 2 - r, r, 1 * Math.PI / 2, 2 * Math.PI / 2);
+        this.ctx.arc(x - width / 2 + r, y - width / 2 + r, r, 2 * Math.PI / 2, 3 * Math.PI / 2);
+        this.ctx.lineTo(x + width / 2 - r, y - width / 2);
+        this.ctx.fill();
+        this.ctx.closePath();
+    }
+    /**
+     * Draws a curve through 2 or more points
+     * @param points
+     * points to draw the curve through
+     */
+    spline(points) {
+        const f = 0.3, t = 0.6;
+        this.ctx.beginPath();
+        this.ctx.moveTo(points[0][0], points[0][1]);
+        let m = 0, dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+        let preP = points[0], curP, nexP;
+        for (let i = 1; i < points.length; i++) {
+            curP = points[i];
+            nexP = points[i + 1];
+            if (nexP) {
+                m = (preP[1] - curP[1]) / (preP[0] - curP[0]);
+                dx2 = -(nexP[0] - curP[0]) * f;
+                dy2 = dx2 * m * t;
+            }
+            this.ctx.bezierCurveTo(preP[0] - dx1, preP[1] - dy1, curP[0] + dx2, curP[1] + dy2, curP[0], curP[1]);
+            dx1 = dx2;
+            dy1 = dy2;
+            preP = curP;
+        }
+        this.ctx.stroke();
+        this.ctx.closePath();
+    }
+    /**
+     * Draws a bezier curve with 4 control points
+     * @param p1
+     * first control point
+     * @param p2
+     * second control point
+     * @param p3
+     * third control point
+     * @param p4
+     * fourth control point
+     */
+     bezier4(p1, p2, p3, p4) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(...p1);
+        this.ctx.bezierCurveTo(...p2, ...p3,...p4);
+        this.ctx.stroke();
+        this.ctx.closePath();
+    }
+    /**
+     * Draws a bezier curve with 3 control points
+     * @param p1
+     * first control point
+     * @param p2
+     * second control point
+     * @param p3
+     * third control point
+     */
+    bezier3(p1, p2, p3) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(...p1);
+        this.ctx.quadraticCurveTo(...p2, ...p3);
+        this.ctx.stroke();
+        this.ctx.closePath();
+    }
+    /**
+     * Draws unscaled image with top left corner at (x,y)
+     */
+    drawImage(img, x, y) {
+        if (img.width * img.height === 0) {
+            console.log(img);
+        }
+        this.ctx.drawImage(img, x, y);
+    }
+    /**
+     * Draws an image scaled by a factor with top left corner at (x,y)
+     */
+    drawScaledImage(img, x, y, factor = 1) {
+        this.ctx.drawImage(img, x, y, factor * img.width, factor * img.height);
+    }
+    /**
+     * Draws an image scaled to width (preserving the aspect ratio) with top left corner at (x,y)
+     */
+    drawImageWithWidth(img, x, y, destwidth) {
+        let destheight = destwidth / img.width * img.height;
+        this.ctx.drawImage(img, x, y, destwidth, destheight);
+    }
+    /**
+     * Draws an image scaled to height (preserving the aspect ratio) with top left corner at (x,y)
+     */
+    drawImageWithHeight(img, x, y, destheight) {
+        let destwidth = destheight / img.height * img.width;
+        this.ctx.drawImage(img, x, y, destwidth, destheight);
+    }
+    /**
+     * Draws an image on a rect with top left corner (x1,y1) and bottom right corner (x2,y2)
+     */
+    drawImageOnRect(img, x1, y1, x2, y2) {
+        let destwidth = ~~(x2 - x1);
+        let destheight = ~~(y2 - y1);
+        this.ctx.drawImage(img, x1, y1, destwidth, destheight);
+    }
+    /**
+     * Wrapper for CanvasRenderingContext2D.save()
+     * Saves the current state to a stack
+     */
+    pushState() {
+        this.ctx.save();
+    }
+    /**
+     * Wrapper for CanvasRenderingContext2D.restore()
+     * Restores the last state on the stack and pops it from the stack
+     */
+    restoreState() {
+        this.ctx.restore();
+    }
+    /**
+     * rotate context by angle around (x,y) or (0,0) if not present
+     * @param angle
+     * angle in radians
+     * @param clockwise
+     * whether to rotate clockwise
+     */
+    rotate(angle, clockwise = true, x = 0, y = 0) {
+        this.ctx.translate(-x, -y);
+        this.ctx.rotate(clockwise ? angle : -angle);
+        this.ctx.translate(x, y);
+    }
+    /**
+     * translates context x units left and y units down
+     */
+    translate(x, y) {
+        this.ctx.translate(x, y);
+    }
+    /**
+     * scales context by a factor of a around (x,y) or (0,0) if not present
+     */
+    scale(a, x = 0, y = 0) {
+        this.ctx.translate(-x, -y);
+        this.ctx.scale(a, a);
+        this.ctx.translate(x, y);
+    }
+    /**
+     * Wrapper for ctx.setTransform
+     */
+    setTransform(a,b,c,d,e,f){
+        this.ctx.setTransform(a,b,c,d,e,f);
+    }
+    /**
+     * Clears all transformations
+     */
+    clearTransform(){
+        this.ctx.setTransform(1,0,0,1,0,0);
+    }
+    /**
+     * Attempts to call f(current time,elapsed time in milliseconds) at the computer's base framerate
+     * @param {Function} f - the function to be called
+     * @returns {Promise<any>} will be resolved when f returns true and the animation is stopped
+     */
+    static createAnimation(f) {
+        return new Promise(resolve=>requestAnimationFrame(t=>{
+            let then = t;
+            (f2=>f2(t))(function f2(t){
+                if (f(0.001 * t, 0.001 * (t - then))) return resolve();
+                then = t;
+                requestAnimationFrame(f2);
+            })
+        }))       
+    }
+}
+function createDragDetector(el,func){
+    let oldX, oldY;
+    function mouseDownHandler(newX, newY){oldX = newX, oldY = newY}
+    function mouseUpHandler(newX, newY){
+        if(oldX == undefined) return;
+        func(oldX, oldY, newX, newY);
+        oldX = oldY = undefined;
+    }
+    el.addEventListener("mousedown",e=>{
+        if(e.buttons & 1) mouseDownHandler(e.clientX,e.clientY);
+    });
+    window.addEventListener("mouseup",e=>{
+        mouseUpHandler(e.clientX,e.clientY);
+    });
+    el.addEventListener("touchstart",e=>{
+        mouseDownHandler(e.touches[0].clientX,e.touches[0].clientY);
+    });
+    window.addEventListener("touchend",e=>{
+        mouseUpHandler(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
+    });
+}
+
+function createClickDetector(el){
+    let res = {
+        _clicked: false,
+        clicked(){
+            let r = this._clicked;
+            this._clicked = false;
+            return r;
+        }
+    }
+    el.addEventListener("click",_=>{res._clicked = true});
+    return res;
+}
+      </script>
+        
+    </head>
+    <body>
+        <div id="container"></div>
+        <script>const {sin, cos, pow, atan2, sqrt, floor, ceil, min, max, random, PI} = Math; const TAU = PI * 2;
+
+/** @abstract */
+class NPOBaseClass{
+	/**
+	 * @param {(self:NPOBaseClass,elapsedTime:number,player:PO)=>void} spawnFunc
+	 * @param {(self:NPOBaseClass,elapsedTime:number,player:PO)=>void} updateFunc
+	 * @param {(self:NPOBaseClass,elapsedTime:number)=>void} drawFunc
+	 * @param {(self:NPOBaseClass,target: NPO|PO)=>void} onCollideFunc
+	 * @param {number} radius
+	 * @param {String} color
+	 */
+	constructor(spawnFunc, updateFunc, drawFunc, onCollideFunc, radius, color){
+		this.spawnFunc = spawnFunc;
+        this.updateFunc = updateFunc;
+        this.drawFunc = drawFunc;
+        this.onCollideFunc = onCollideFunc;
+		this.radius = radius;
+		this.color = color;
+		/** @type {NPO[]} */
+		this.list = [];
+	}
+
+	spawn(elapsedTime, player){
+		this.spawnFunc(this,elapsedTime,player);
+	}
+    update(elapsedTime, player){
+        
+    }
+
+	static basicSpawn(spawnChance,min,cap){
+		return function(elapsedTime, player){
+			let shouldSpawn = this.list.length < min && random() < elapsedTime
+				|| this.list.length < cap && random() < spawnChance * elapsedTime;
+			if(shouldSpawn){
+				while(true){
+					t.list.unshift(t.create());
+					if(t.list[0].hardCollide(
+						player.x, player.y,
+					1.5 * R + 25 * t.list[0].maxSpeed * R)) t.list.shift();
+					else break;
+				}
+			}
+		}
+	}
+}
+
+class NPO{
+    /** @param {(r:number)=>any} drawFunc @param {number} boost @param {number} maxT @param {number} maxSpeed @param {number} jitter */
+    constructor(drawFunc, boost, maxT, maxSpeed = .1, jitter = .01, homing = false, x,y){
+        this.drawFunc = drawFunc;
+        this.boost = boost;
+        this.maxT = maxT;
+        this.maxSpeed = maxSpeed;
+        this.jitter = jitter;
+
+        this.t = 0;
+        this.x = x === undefined ? random() * 2 : x;
+        this.y = y === undefined ? random() : y;
+        
+        let angle = random() * TAU, energy = random() * maxSpeed;
+        this.vx = energy * sin(angle);
+        this.vy = energy * cos(angle);
+
+        this.flicker = false;
+        this.homing = homing;
+    }
+    /** @param {number} elapsedTime */
+    update(elapsedTime){
+        this.t += elapsedTime;
+
+        if(this.x + R > 2) this.x = 2 - R, this.vx *= -1;
+        if(this.x < R)     this.x = R,     this.vx *= -1
+        if(this.y + R > 1) this.y = 1 - R, this.vy *= -1;
+        if(this.y < R)     this.y = R,     this.vy *= -1;
+
+        if(this.homing){
+            let dx = p.x - this.x, dy = p.y - this.y;
+            let d = sqrt(dx * dx + dy * dy);
+            let a = max(1 - d * 2, 0) * elapsedTime / 5;
+            this.vx += dx * a;
+            this.vy += dy * a;
+        }
+        else{
+            this.vx += (random() - .5) * this.jitter * elapsedTime;
+            this.vy += (random() - .5) * this.jitter * elapsedTime;
+        }
+        
+        let speed = sqrt(this.vx * this.vx + this.vy * this.vy);
+
+        if(speed > this.maxSpeed) this.vx *= this.maxSpeed / speed, this.vy *= this.maxSpeed / speed;
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        this.flicker = (f=>f < this.t && f < this.maxT - this.t)(random());
+    }
+    draw(r){
+        c.ctx.globalAlpha = min(this.t, 1, this.maxT - this.t);
+        this.drawFunc.call(this,r);
+        c.ctx.globalAlpha = 1;
+    }
+    collide(x,y){
+        return this.flicker && this.hardCollide(x,y) && (this.t = Number.POSITIVE_INFINITY, true);
+    }
+    hardCollide(x,y,r = 2*R){
+        return Math.sqrt((this.x - x) * (this.x - x) + (this.y - y) * (this.y - y)) <= r;
+    }
+    filter(){return this.t < this.maxT}
+
+    static drawSquareFunc(r){
+        c.drawPolygon(coord(this.x, this.y),[
+            [ sin(this.t), cos(this.t)],
+            [ cos(this.t),-sin(this.t)],
+            [-sin(this.t),-cos(this.t)],
+            [-cos(this.t), sin(this.t)],
+        ].map(i=>scaleAndRot(...i.map(j=>j*r))))
+    }
+    static drawTriFunc(r){
+        let a = atan2(this.vy,this.vx);
+        c.drawPolygon(coord(this.x, this.y),[
+            [sqrt(.5) * cos(a),  sqrt(.5) * sin(a) ],
+            [-cos(a + TAU * 1/8),-sin(a + TAU * 1/8)],
+            [-cos(a - TAU * 1/8),-sin(a - TAU * 1/8)],
+        ].map(i=>scaleAndRot(...i.map(j=>j*r))))
+    }
+    static circleFunc(r){
+        c.drawCircle(...coord(this.x,this.y),...scale(r));
+    }
+}
+
+
+class PO{
+    constructor(){
+        this.x = this.y = this.energy = this.angle = this.lastPositions = this.turns = undefined;
+        this.reset();
+    }
+    reset(){
+        this.x = 1; this.y = .5;
+        this.energy = 10;
+        this.angle = random() * TAU;
+
+        /**@type {[number,number][]}*/
+        this.lastPositions = [];
+        /**@type {[number,number,number][]}*/
+        this.turns = [];
+    }
+    turn(angle){
+        this.angle = angle;
+        this.turns.push([this.x, this.y, 0]);
+    }
+	getSpeed(){
+		return PLAYER_MAX_SPEED * (1 - Math.pow(1.05 , -this.energy));
+	}
+    update(elapsedTime){
+        this.energy -= .1 * elapsedTime;
+
+        if(this.energy <= 0) return true;
+
+        let ds = elapsedTime * this.getSpeed();
+
+        let maxTailLength = min(128, 8 * sqrt(this.energy));
+
+        for(;ds > 0; ds -= W){
+            let _ds = min(ds,W);
+            this.x -= _ds * sin(this.angle * TAU);
+            this.y -= _ds * cos(this.angle * TAU);
+
+            if(this.x + R > 2) this.turn(0.0 - this.angle), this.x = 2 - R;
+            if(this.x < R)     this.turn(0.0 - this.angle), this.x = R;
+            if(this.y + R > 1) this.turn(0.5 - this.angle), this.y = 1 - R;
+            if(this.y < R)     this.turn(0.5 - this.angle), this.y = R;
+            
+            this.lastPositions.push([this.x,this.y]);
+            while(this.lastPositions.length > maxTailLength) this.lastPositions.shift();
+            this.turns = this.turns.filter(i => (++i[2]) <= maxTailLength);
+        }
+    }
+    draw(){
+        for(let i = 0; i < 8; i++){
+            c.setDrawColor("#FD0" + "FC864321".charAt(i));
+            c.drawCircle(...coord(this.x, this.y), scale(R + W * i)[0]);
+        }
+    
+        c.setDrawColor("#FD01");
+        if(this.lastPositions.length){
+        let positions = [this.lastPositions[0],...this.turns,[this.x,this.y]];
+            for(let i = 0; i + 1 < positions.length;){
+                let [prev,next] = [positions[i],positions[++i]];
+                let length = sqrt((prev[0] - next[0]) * (prev[0] - next[0]) + (prev[1] - next[1]) * (prev[1] - next[1]));
+                let _length = 1 / length;
+                for(let j = 0; j < length; j += W){
+                    c.drawCircle(...coord(
+                        prev[0] + (next[0] - prev[0]) * j * _length,
+                        prev[1] + (next[1] - prev[1]) * j * _length,
+                    ), scale(R)[0]);
+                }
+            }
+        }
+    }
+}
+
+
+/**@type {{canvas:HTMLCanvasElement}} */
+let c = new Canvas(0,0,container);
+c.ctx.lineCap = "square";
+c.setFont("monospace");
+c.setFont('Orbitron');
+// c.canvas.addEventListener("contextmenu",e=>e.preventDefault());
+window.onresize = (f=>(f(),f))(_=>{
+    document.body.style.setProperty("--W",window.innerWidth);
+    document.body.style.setProperty("--H",window.innerheight);
+    c.resize();
+});
+
+c.canvas.addEventListener("dblclick",_=>{
+	document.body.requestFullscreen();
+})
+
+const R = .025,
+      W = .003125,
+      PLAYER_MIN_SPEED = 0.05,
+      PLAYER_MAX_SPEED = 2;
+
+var p = new PO();
+
+/**
+ * @type {Map<string,{
+ *     list: NPO[],
+ *     create: (()=>NPO),
+ *     color: String,
+ *     initial_num: number,
+ *     spawnChance: number,
+ *     min: number,
+ *     cap: number
+ * }>}
+ * */
+var obstacles = new Map([
+    ["squares",{
+        list:[],
+        create: (x,y)=>{return new NPO(NPO.drawSquareFunc, -2, 16, .002, .0001,false,x,y)},
+        color:"#F3A",
+        spawnChance: .6,
+        min: 8,
+        cap: 12
+    }],
+    ["squares2",{
+        list:[],
+        create: (x,y)=>{return new NPO(NPO.drawSquareFunc, -4, 10, .02, .1,false,x,y)},
+        color:"#F0F",
+        spawnChance: .1,
+        min: 0,
+        cap: 2,
+    }],
+    ["squares3",{
+        list:[],
+        create: (x,y)=>{return new NPO(NPO.drawTriFunc, -1,  8, .01,  .05, true,x,y)},
+        color:"#F07",
+        spawnChance: 1,
+        min: 0,
+        cap: 6,
+    }],
+    ["circles",{
+        list:[],
+        create: (x,y)=>{return new NPO(NPO.circleFunc,  1,  8, .002, .0001,false,x,y)},
+        color:"#0FF",
+        spawnChance: .3,
+        min: 2,
+        cap: 4,
+    }],
+    ["circles2",{
+        list:[],
+        create: (x,y)=>{return new NPO(NPO.circleFunc,  3,  5, max(p.getSpeed() / 25, .01), .1,false,x,y)},
+        color:"#0F4",
+        spawnChance: .1,
+        min: 0,
+        cap: 2,
+    }],
+	["gold",{
+        list:[],
+        create: (x,y)=>{return new NPO(function(r){NPO.circleFunc.call(this,r/2)},  0,  5, 0, 0,false,x,y)},
+        color:"#FF4",
+        spawnChance: .1,
+        min: 0,
+        cap: 1,
+    }],
+])
+
+var score = 0;
+
+function coord(x, y){return c.width > c.height ? scale(x, y) : scale(1 - y, x)}
+function scale(...a){return a.map(i=>i* min(c.width,c.height))}
+function scaleAndRot(x,y){return c.width > c.height ? scale(x, y) : scale(-y, x)}
+
+createDragDetector(c.canvas,(oldX,oldY,newX,newY)=>{
+    p.turn(- atan2(newY - oldY, newX - oldX) / PI / 2 - (c.width > c.height) * .25);
+})
+var clicked = createClickDetector(c.canvas);
+
+const minSpawnDistance = 0.5;
+
+function update(elapsedTime){
+    for(let t of obstacles.values()){
+        let shouldSpawn = t.list.length < t.min && random() < elapsedTime
+            || t.list.length < t.cap && random() < t.spawnChance * elapsedTime;
+        if(shouldSpawn){
+			let angle = 0;
+			let spawnRange = -1;
+			while(spawnRange < 0){
+
+				angle = random() * TAU;
+
+				let distanceToEdge = min(
+					((p.x * cos(angle) <= 0 ? 0 : 2) - p.x) / cos(angle),
+					((p.y * sin(angle) <= 0 ? 0 : 1) - p.y) / sin(angle),
+				);
+				spawnRange = distanceToEdge - minSpawnDistance;
+			}
+
+			let distance = random() * spawnRange + minSpawnDistance;
+
+			function trunc(x){return ~~(x * 100) / 100}
+
+			let pos = [p.x + cos(angle) * distance, p.y + sin(angle) * distance];
+
+			t.list.unshift(t.create(...pos));
+        }
+    }
+
+    for(let o of [].concat(...[...obstacles.values()].map(i=>i.list))){
+        o.update(elapsedTime);
+        if(o.collide(p.x,p.y)) p.energy += o.boost;
+    }
+
+    obstacles.forEach(t=>(t.list = t.list.filter(o=>o.filter())))
+
+    if(p.update(elapsedTime)) return true;
+
+    score += p.energy * elapsedTime * 0.1;
+}
+
+function draw(){
+    c.clear("#014");
+	
+    c.setStrokeWidth(scale(W));
+
+	c.ctx.lineCap = "square";
+
+	for(let i = 0; i < 5; i++){
+        let opacity = "F8421".charAt(i)
+
+		c.setDrawColor("#FFF" + opacity);
+		c.drawRect(...coord(W * (i + 0.5), W * (i + 0.5)), ...coord(2 - W * (i + 0.5), 1 - W * (i + 0.5)));
+    }
+
+    for(let i = 0; i < 3; i++){
+        let opacity = "F84".charAt(i)
+        for(let t of obstacles.values()){
+            c.setDrawColor(t.color + opacity);
+            for(let o of t.list) o.draw(R + i * W);
+        }
+    }
+
+    p.draw();
+
+    c.setDrawColor("#FFF");
+    c.fillText("ENERGY: " + ceil(p.energy) + "  |  SCORE: " + ceil(score), c.width / 2, ...scale(.05 + 2 * W), ...scale(.05));
+}
+
+
+(f=>f())(function reset(){
+    score = 0;
+    p.reset();
+	
+    for(let t of obstacles.values()) t.list = [];
+
+    Canvas.createAnimation((_,elapsedTime)=>{
+        if(update(elapsedTime)) return true;
+        draw();
+    }).then(_=>{
+		p.energy = 0;
+		clicked.clicked();
+		Canvas.createAnimation(currTime=>{
+			draw();
+
+			let fontScale = max(c.w, c.h);
+
+			let redOpacity = sin(currTime * 4.0) + 1;
+			c.clear("#FF0000" + "65"[~~redOpacity] + "FEDCBA9876543210"[(redOpacity * 16) & 15]);
+			c.setDrawColor("#FFF")
+			c.fillText("GAME OVER",c.w / 2, c.h/2 - fontScale * .04,fontScale/20);
+			c.fillText("FINAL SCORE: " + ceil(score), c.w/2,c.h/2,fontScale/30);
+			c.fillText("Click anywhere to play again", c.w/2,c.h/2 + fontScale * .04,fontScale/36);
+			if(clicked.clicked()) return true;
+    	}).then(reset)
+	});
+})
+      </script>
+    </body>
+</html>
